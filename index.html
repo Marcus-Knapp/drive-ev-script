@@ -161,7 +161,6 @@ main{max-width:1100px;margin:0 auto;padding:28px 24px 64px;}
   <button class="nb" onclick="show(event,'whyev')">Why EV?</button>
   <button class="nb" onclick="show(event,'calc')">Savings Calc</button>
   <button class="nb" onclick="show(event,'qa')">EV Q&amp;A</button>
-  <button class="nb" onclick="show(event,'tracker')">Call Tracker</button>
 </nav>
 <main>
 <!-- CALL SCRIPTS -->
@@ -585,34 +584,7 @@ main{max-width:1100px;margin:0 auto;padding:28px 24px 64px;}
   <div class="sb"><div class="csb"><div class="st">Recommend These Apps</div>"<strong>Zap-Map</strong> is the most popular in the UK &mdash; real-time availability, charger speed, network, plug type, and user reviews. Free on iOS and Android at zap-map.com.<br><br><strong>Pod Point</strong> covers their own network found at Tesco and Lidl &mdash; great for top-ups during a shop.<br><br>Networks like <strong>Gridserve, BP Pulse, InstaVolt, and Osprey</strong> all have their own apps. Your Hyundai's built-in navigation also shows nearby chargers with live availability."</div></div></div>
 </div>
 
-<!-- CALL TRACKER -->
-<div id="sec-tracker" class="sec">
-  <div style="font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;color:var(--hb);margin-bottom:5px;">Event Week Call Tracker</div>
-  <div style="color:var(--muted);font-size:13.5px;margin-bottom:18px;">Log every call and test drive booking. Resets when you refresh &mdash; use alongside your CRM.</div>
-  <div class="tgr">
-    <div class="tbox"><div class="tnum" id="t-calls" style="color:var(--ht);">0</div><div class="tlbl">Calls Made</div></div>
-    <div class="tbox"><div class="tnum" id="t-bookings" style="color:var(--ac);">0</div><div class="tlbl">Test Drives Booked</div></div>
-    <div class="tbox"><div class="tnum" id="t-callbacks" style="color:#FFB347;">0</div><div class="tlbl">Callbacks Needed</div></div>
-    <div class="tbox"><div class="tnum" id="t-rate" style="color:var(--warn);">--</div><div class="tlbl">Conversion Rate</div></div>
-  </div>
-  <div class="tbgr">
-    <button class="tbtn" onclick="logCall('call')" style="background:var(--hb);color:#fff;">Log a Call</button>
-    <button class="tbtn" onclick="logCall('booking')" style="background:#1A7A48;color:#fff;">Log Test Drive Booked</button>
-    <button class="tbtn" onclick="logCall('callback')" style="background:#8B6000;color:#fff;">Log Callback Needed</button>
-  </div>
-  <div class="card" style="margin-bottom:18px;">
-    <div class="ct">Call Log</div>
-    <div id="t-log" style="font-size:12.5px;color:var(--muted);max-height:280px;overflow-y:auto;line-height:1.8;"><em>No calls logged yet &mdash; use the buttons above to start tracking.</em></div>
-    <button onclick="resetTracker()" style="margin-top:12px;background:none;border:1px solid var(--bdr);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;color:var(--muted);font-family:'Manrope',sans-serif;">Reset Tracker</button>
-  </div>
-  <div class="sh2">Event Week Countdown</div>
-  <div class="cdp">
-    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.7;margin-bottom:7px;">Time Remaining in Event Week</div>
-    <div id="countdown" style="font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;color:#FFB347;">Calculating...</div>
-    <div style="font-size:11.5px;opacity:.6;margin-top:5px;">Event closes Sunday 18 May 2026 at 6:00pm</div>
-    <div id="countdown-msg" style="margin-top:10px;font-size:13.5px;opacity:.85;"></div>
-  </div>
-</div>
+
 
 </main>
 <script>
@@ -663,38 +635,7 @@ function calc(){
   document.getElementById('r-script').innerHTML='<strong style="color:var(--ht);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">Say This to the Customer:</strong>"Based on '+miles.toLocaleString()+' miles a year, you are currently spending around £'+cur.toLocaleString()+' on '+fuel+'. The '+ev.name+' would cost roughly £'+evc.toLocaleString()+' to charge at home — saving you £'+sav.toLocaleString()+' a year. Over five years, including servicing savings, that is over £'+fy.toLocaleString()+'. And as a Hyundai customer the Q2 loyalty bonus takes £2,000 off the car."';
 }
 window.addEventListener('load',calc);
-var calls=0,bookings=0,callbacks=0,log=[];
-function logCall(type){
-  var now=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  calls++;
-  if(type==='booking'){bookings++;log.unshift(now+' -- BOOKED: Test Drive Secured');}
-  else if(type==='callback'){callbacks++;log.unshift(now+' -- CALLBACK: Follow-up needed');}
-  else{log.unshift(now+' -- CALL: Outbound call made');}
-  document.getElementById('t-calls').textContent=calls;
-  document.getElementById('t-bookings').textContent=bookings;
-  document.getElementById('t-callbacks').textContent=callbacks;
-  document.getElementById('t-rate').textContent=Math.round(bookings/calls*100)+'%';
-  document.getElementById('t-log').innerHTML=log.slice(0,25).map(function(l){return '<div style="padding:4px 0;border-bottom:1px solid var(--bdr);">'+l+'</div>';}).join('');
-}
-function resetTracker(){
-  calls=0;bookings=0;callbacks=0;log=[];
-  document.getElementById('t-calls').textContent=0;
-  document.getElementById('t-bookings').textContent=0;
-  document.getElementById('t-callbacks').textContent=0;
-  document.getElementById('t-rate').textContent='--';
-  document.getElementById('t-log').innerHTML='<em style="color:var(--muted);">No calls logged yet.</em>';
-}
-function countdown(){
-  var end=new Date('2026-05-18T18:00:00'),now=new Date(),diff=end-now;
-  var el=document.getElementById('countdown');
-  if(!el)return;
-  if(diff<=0){el.textContent='Event Ended';document.getElementById('countdown-msg').textContent='Great work this week team!';return;}
-  var d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000);
-  el.textContent=(d>0?d+'d ':'')+h+'h '+m+'m remaining';
-  document.getElementById('countdown-msg').textContent=d===0?'Final push today - every call counts!':d===1?'Last full day - finish strong!':'Keep going - '+(d+1)+' days of event left!';
-}
-countdown();
-setInterval(countdown,60000);
+
 </script>
 </body>
 </html>
