@@ -3,1413 +3,698 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hyundai EV Sales Script — Internal Tool</title>
+<title>Hyundai EV Sales Script - Read Motor Group v2</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap');
-
-  :root {
-    --hyundai-blue: #002C5F;
-    --hyundai-teal: #00ADEF;
-    --hyundai-silver: #C4C4C4;
-    --accent: #00D4AA;
-    --warn: #FF6B35;
-    --bg: #F0F2F5;
-    --card: #FFFFFF;
-    --text: #0D1B2A;
-    --muted: #6B7A8F;
-    --border: #DDE3EC;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Manrope', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  /* HEADER */
-  header {
-    background: var(--hyundai-blue);
-    color: white;
-    padding: 0 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 12px rgba(0,44,95,0.3);
-  }
-
-  .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .logo-h {
-    width: 36px;
-    height: 36px;
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--hyundai-blue);
-    letter-spacing: -1px;
-  }
-
-  .header-title {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-  }
-
-  .header-sub {
-    font-size: 11px;
-    opacity: 0.6;
-    font-weight: 400;
-    margin-top: 1px;
-  }
-
-  .header-badge {
-    background: var(--accent);
-    color: var(--hyundai-blue);
-    font-size: 10px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-  }
-
-  /* MODEL NAV */
-  .model-nav {
-    background: white;
-    border-bottom: 1px solid var(--border);
-    padding: 0 32px;
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    position: sticky;
-    top: 64px;
-    z-index: 99;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
-
-  .model-nav::-webkit-scrollbar { display: none; }
-
-  .nav-btn {
-    flex: none;
-    padding: 14px 20px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-family: 'Manrope', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--muted);
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
-    white-space: nowrap;
-    position: relative;
-  }
-
-  .nav-btn:hover { color: var(--hyundai-blue); }
-
-  .nav-btn.active {
-    color: var(--hyundai-blue);
-    border-bottom-color: var(--hyundai-teal);
-  }
-
-  .nav-badge {
-    display: inline-block;
-    background: var(--warn);
-    color: white;
-    font-size: 9px;
-    font-weight: 700;
-    padding: 2px 5px;
-    border-radius: 8px;
-    margin-left: 5px;
-    vertical-align: top;
-    margin-top: -2px;
-  }
-
-  /* LAYOUT */
-  .main {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 28px 24px 48px;
-  }
-
-  /* MODEL SECTION */
-  .model-section {
-    display: none;
-  }
-  .model-section.active {
-    display: block;
-    animation: fadeUp 0.3s ease;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* HERO CARD */
-  .hero-card {
-    background: linear-gradient(135deg, var(--hyundai-blue) 0%, #004080 60%, #005FA3 100%);
-    border-radius: 16px;
-    padding: 32px 36px;
-    color: white;
-    margin-bottom: 24px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero-card::before {
-    content: '';
-    position: absolute;
-    right: -40px;
-    top: -40px;
-    width: 280px;
-    height: 280px;
-    background: rgba(0,173,239,0.12);
-    border-radius: 50%;
-  }
-
-  .hero-card::after {
-    content: '';
-    position: absolute;
-    right: 60px;
-    bottom: -60px;
-    width: 180px;
-    height: 180px;
-    background: rgba(0,212,170,0.08);
-    border-radius: 50%;
-  }
-
-  .hero-eyebrow {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--hyundai-teal);
-    margin-bottom: 8px;
-  }
-
-  .hero-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1.1;
-    margin-bottom: 10px;
-  }
-
-  .hero-tagline {
-    font-size: 15px;
-    opacity: 0.75;
-    font-weight: 400;
-    max-width: 500px;
-    line-height: 1.5;
-    margin-bottom: 20px;
-  }
-
-  .hero-stats {
-    display: flex;
-    gap: 32px;
-    flex-wrap: wrap;
-  }
-
-  .hero-stat {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .hero-stat-val {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--accent);
-    line-height: 1;
-  }
-
-  .hero-stat-label {
-    font-size: 11px;
-    opacity: 0.65;
-    margin-top: 3px;
-    font-weight: 500;
-  }
-
-  /* GRID */
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  .grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  @media (max-width: 700px) {
-    .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    .hero-stats { gap: 16px; }
-    .hero-title { font-size: 24px; }
-  }
-
-  /* CARDS */
-  .card {
-    background: var(--card);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    padding: 20px 22px;
-  }
-
-  .card-title {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--hyundai-teal);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .card-title svg {
-    flex: none;
-  }
-
-  /* SPEC ROWS */
-  .spec-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 9px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13.5px;
-  }
-
-  .spec-row:last-child { border-bottom: none; }
-
-  .spec-label { color: var(--muted); font-weight: 500; }
-  .spec-val { font-weight: 700; color: var(--text); }
-  .spec-val.highlight { color: var(--hyundai-teal); }
-
-  /* SCRIPT BLOCKS */
-  .script-section {
-    background: var(--card);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-
-  .script-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.2s;
-    border-bottom: 1px solid transparent;
-  }
-
-  .script-header:hover { background: #F7F9FC; }
-
-  .script-header.open {
-    border-bottom-color: var(--border);
-    background: #F0F7FF;
-  }
-
-  .script-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .script-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex: none;
-  }
-
-  .script-icon.blue { background: #E8F0FE; }
-  .script-icon.green { background: #E6F9F4; }
-  .script-icon.orange { background: #FFF0EA; }
-  .script-icon.purple { background: #F0EAFF; }
-
-  .script-label {
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--text);
-  }
-
-  .script-sub {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 1px;
-  }
-
-  .chevron {
-    transition: transform 0.25s;
-    color: var(--muted);
-  }
-
-  .chevron.open { transform: rotate(180deg); }
-
-  .script-body {
-    display: none;
-    padding: 18px 20px;
-  }
-
-  .script-body.open { display: block; }
-
-  /* TALKING POINTS */
-  .talking-point {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-
-  .tp-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--hyundai-teal);
-    flex: none;
-    margin-top: 6px;
-  }
-
-  .tp-text {
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: var(--text);
-  }
-
-  .tp-text strong { color: var(--hyundai-blue); }
-
-  /* OBJECTIONS */
-  .objection {
-    background: #FFF8F5;
-    border: 1px solid #FFD4BF;
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-  }
-
-  .obj-q {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--warn);
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .obj-a {
-    font-size: 13px;
-    line-height: 1.6;
-    color: var(--text);
-  }
-
-  /* COMPARISON TABLE */
-  .comp-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    margin-top: 8px;
-  }
-
-  .comp-table th {
-    background: var(--hyundai-blue);
-    color: white;
-    padding: 10px 14px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 12px;
-  }
-
-  .comp-table td {
-    padding: 9px 14px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-
-  .comp-table tr:last-child td { border-bottom: none; }
-  .comp-table tr:nth-child(even) td { background: #F7F9FC; }
-  .comp-table td:first-child { font-weight: 600; color: var(--hyundai-blue); }
-
-  /* PILL TAGS */
-  .tag {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    margin: 2px;
-  }
-
-  .tag-blue { background: #E8F0FE; color: var(--hyundai-blue); }
-  .tag-teal { background: #E0F9F4; color: #007A6B; }
-  .tag-orange { background: #FFF0E6; color: #C04A00; }
-  .tag-green { background: #E7F8EF; color: #1A7A48; }
-
-  /* QUICK REF */
-  .quick-ref {
-    background: linear-gradient(135deg, #002C5F 0%, #004080 100%);
-    color: white;
-    border-radius: 12px;
-    padding: 20px 22px;
-    margin-bottom: 16px;
-  }
-
-  .qr-title {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 14px;
-  }
-
-  .qr-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-
-  @media (max-width: 700px) { .qr-grid { grid-template-columns: 1fr 1fr; } }
-
-  .qr-item {
-    background: rgba(255,255,255,0.08);
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
-  }
-
-  .qr-val {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--hyundai-teal);
-  }
-
-  .qr-label {
-    font-size: 10px;
-    opacity: 0.65;
-    margin-top: 3px;
-  }
-
-  /* HINT BANNER */
-  .hint {
-    background: #E8F4FF;
-    border-left: 4px solid var(--hyundai-teal);
-    border-radius: 0 8px 8px 0;
-    padding: 12px 16px;
-    font-size: 13px;
-    line-height: 1.55;
-    margin-bottom: 14px;
-    color: var(--hyundai-blue);
-  }
-
-  .hint strong { font-weight: 700; }
-
-  /* CUSTOMER TYPES */
-  .ctype-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .ctype-card {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    background: white;
-  }
-
-  .ctype-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--hyundai-blue);
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .ctype-points {
-    font-size: 12.5px;
-    color: var(--muted);
-    line-height: 1.7;
-  }
-
-  /* SECTION HEADING */
-  .section-heading {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--muted);
-    margin: 24px 0 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .section-heading::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  /* OVERVIEW NAV cards */
-  .overview-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 24px;
-  }
-
-  @media (max-width: 700px) { .overview-grid { grid-template-columns: 1fr 1fr; } }
-
-  .ov-card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-  }
-
-  .ov-card:hover {
-    border-color: var(--hyundai-teal);
-    box-shadow: 0 4px 16px rgba(0,173,239,0.12);
-    transform: translateY(-2px);
-  }
-
-  .ov-emoji { font-size: 28px; margin-bottom: 8px; }
-
-  .ov-name {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--hyundai-blue);
-    margin-bottom: 4px;
-  }
-
-  .ov-desc {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.4;
-  }
-
-  .ov-range {
-    margin-top: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--accent);
-  }
-
-  /* WARRANTY BADGE */
-  .warranty-banner {
-    background: linear-gradient(135deg, #E6F9F4, #F0FFF8);
-    border: 1px solid #A8E8D0;
-    border-radius: 10px;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
-  }
-
-  .warranty-icon { font-size: 28px; }
-
-  .warranty-text strong {
-    font-size: 14px;
-    color: #1A7A48;
-    display: block;
-    margin-bottom: 2px;
-  }
-
-  .warranty-text span {
-    font-size: 12px;
-    color: var(--muted);
-  }
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap');
+:root{--hb:#002C5F;--ht:#00ADEF;--ac:#00D4AA;--warn:#FF6B35;--fire:#E8320A;--gold:#C9930A;--bg:#F0F2F5;--card:#fff;--text:#0D1B2A;--muted:#6B7A8F;--bdr:#DDE3EC;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);}
+header{background:var(--hb);color:#fff;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,44,95,.3);}
+.hbrand{display:flex;align-items:center;gap:14px;}
+.logo{width:36px;height:36px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;color:var(--hb);}
+.htitle{font-size:16px;font-weight:700;}.hsub{font-size:11px;opacity:.6;margin-top:1px;}
+.hbadge{background:var(--fire);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.8px;text-transform:uppercase;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+nav{background:#fff;border-bottom:1px solid var(--bdr);padding:0 20px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;position:sticky;top:64px;z-index:99;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+nav::-webkit-scrollbar{display:none;}
+.nb{flex:none;padding:13px 14px;border:none;background:none;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
+.nb:hover{color:var(--hb);}.nb.active{color:var(--hb);border-bottom-color:var(--ht);}
+.nbadge{display:inline-block;background:var(--fire);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:8px;margin-left:4px;vertical-align:top;margin-top:-2px;}
+main{max-width:1100px;margin:0 auto;padding:28px 24px 64px;}
+.sec{display:none;}.sec.active{display:block;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.evhero{background:linear-gradient(135deg,#1C0000,#5C1000,#8B1A00);border-radius:16px;padding:36px 40px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden;border:1px solid rgba(255,100,50,.3);}
+.evhero::before{content:'';position:absolute;right:-60px;top:-60px;width:320px;height:320px;background:rgba(255,80,20,.08);border-radius:50%;}
+.edbadge{display:inline-flex;align-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:30px;padding:6px 16px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+.etitle{font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;line-height:1.1;margin-bottom:8px;}
+.esubtitle{font-size:15px;opacity:.8;line-height:1.55;margin-bottom:22px;max-width:540px;}
+.ecounters{display:flex;gap:14px;flex-wrap:wrap;}
+.ectr{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:14px 18px;text-align:center;min-width:95px;}
+.ecval{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#FFB347;}
+.eclbl{font-size:10px;opacity:.7;margin-top:2px;text-transform:uppercase;letter-spacing:.7px;}
+.fa{background:linear-gradient(135deg,#FFF5F0,#FFF0E8);border:2px solid var(--fire);border-radius:14px;padding:20px 22px;margin-bottom:18px;}
+.fa-t{font-size:13px;font-weight:800;color:var(--fire);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.fa-g{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+.fa-b{background:#fff;border:1px solid #FFD4BF;border-radius:10px;padding:12px;}
+.fa-n{font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:700;color:var(--fire);}
+.fa-l{font-size:11px;color:var(--muted);margin-top:2px;}.fa-c{font-size:11px;font-weight:700;color:var(--fire);margin-top:3px;}
+.fa-note{font-size:12px;color:#7A3010;line-height:1.6;border-top:1px solid #FFD4BF;padding-top:10px;}
+.ly{background:linear-gradient(135deg,#FFF8E6,#FFFBF0);border:2px solid var(--gold);border-radius:14px;padding:20px 22px;margin-bottom:18px;}
+.ly-t{font-size:13px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;}
+.ly-b{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+.lybox{background:#fff;border-radius:12px;padding:14px;text-align:center;}
+.lybox.main{border:2px solid var(--gold);}.lybox.sec{border:1px solid #F0D890;}
+.ly-amt{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:800;color:var(--gold);}
+.ly-nm{font-size:12px;font-weight:700;color:var(--hb);margin-top:3px;}
+.ly-sb{font-size:10px;color:var(--muted);margin-top:3px;}
+.ly-tip{background:#FFF8E0;border:1px solid #F0D890;border-radius:8px;padding:10px 14px;font-size:12px;color:#7A5A00;margin-bottom:12px;}
+.ly-p{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pk{background:#fff;border:1px solid #F0D890;border-radius:10px;padding:12px 14px;}
+.pk-i{font-size:20px;margin-bottom:6px;}.pk-t{font-size:12.5px;font-weight:700;color:var(--hb);margin-bottom:3px;}
+.pk-d{font-size:11.5px;color:var(--muted);line-height:1.5;}
+.scr{background:var(--card);border-radius:12px;border:1px solid var(--bdr);margin-bottom:12px;overflow:hidden;}
+.sh{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;cursor:pointer;user-select:none;transition:background .2s;border-bottom:1px solid transparent;}
+.sh:hover{background:#F7F9FC;}.sh.open{border-bottom-color:var(--bdr);background:#F0F7FF;}
+.shl{display:flex;align-items:center;gap:10px;}
+.si{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;}
+.si.blue{background:#E8F0FE;}.si.green{background:#E6F9F4;}.si.orange{background:#FFF0EA;}.si.purple{background:#F0EAFF;}.si.red{background:#FFF0F0;}.si.gold{background:#FFF8E0;}
+.slbl{font-weight:700;font-size:13.5px;color:var(--text);}.ssub{font-size:11.5px;color:var(--muted);margin-top:1px;}
+.chev{transition:transform .25s;color:var(--muted);}.chev.open{transform:rotate(180deg);}
+.sb{display:none;padding:18px 20px;}.sb.open{display:block;}
+.csb{background:#F8FAFF;border:1px solid #C8D8F0;border-left:4px solid var(--hb);border-radius:0 10px 10px 0;padding:15px 17px;margin-bottom:12px;font-size:13.5px;line-height:1.8;color:var(--text);}
+.st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--ht);margin-bottom:7px;}
+.csb strong{color:var(--hb);font-weight:700;}.csb em{font-style:italic;color:var(--muted);font-size:12.5px;}
+.ph{background:#E8F4FF;border-radius:4px;padding:1px 5px;font-weight:700;color:#0050A0;}
+.ctip{background:#E9F9F4;border:1px solid #B0E8D8;border-radius:8px;padding:10px 14px;margin:8px 0;font-size:12px;color:#1A6B50;line-height:1.55;}
+.cwarn{background:#FFF5F0;border:1px solid #FFD0BA;border-radius:8px;padding:10px 14px;margin:8px 0;font-size:12px;color:#8B3A10;line-height:1.55;}
+.obj{background:#FFF8F5;border:1px solid #FFD4BF;border-radius:10px;padding:13px 15px;margin-bottom:10px;}
+.oq{font-size:12.5px;font-weight:700;color:var(--fire);margin-bottom:5px;}
+.oa{font-size:12.5px;line-height:1.65;color:var(--text);}
+.tp{display:flex;gap:10px;margin-bottom:10px;}
+.tpd{width:7px;height:7px;border-radius:50%;background:var(--ht);flex:none;margin-top:6px;}
+.tpt{font-size:13px;line-height:1.65;}.tpt strong{color:var(--hb);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.card{background:var(--card);border-radius:12px;border:1px solid var(--bdr);padding:18px 20px;}
+.ct{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--ht);margin-bottom:12px;}
+.sr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr);font-size:13px;}
+.sr:last-child{border-bottom:none;}.sl{color:var(--muted);font-weight:500;}.sv{font-weight:700;}.sv.hl{color:var(--ht);}
+.sh2{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:22px 0 12px;display:flex;align-items:center;gap:8px;}
+.sh2::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.hint{background:#E8F4FF;border-left:4px solid var(--ht);border-radius:0 8px 8px 0;padding:11px 15px;font-size:12.5px;line-height:1.55;margin-bottom:12px;color:var(--hb);}
+.hint strong{font-weight:700;}
+.hero{background:linear-gradient(135deg,var(--hb),#004080,#005FA3);border-radius:16px;padding:30px 34px;color:#fff;margin-bottom:22px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;right:-40px;top:-40px;width:260px;height:260px;background:rgba(0,173,239,.12);border-radius:50%;}
+.hey{font-size:10.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ht);margin-bottom:7px;}
+.ht2{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;line-height:1.1;margin-bottom:9px;}
+.htag{font-size:14px;opacity:.75;max-width:540px;line-height:1.55;margin-bottom:20px;}
+.hst{display:flex;gap:28px;flex-wrap:wrap;}
+.hsv{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--ac);line-height:1;}
+.hsl{font-size:10.5px;opacity:.65;margin-top:3px;font-weight:500;}
+.ovg{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:22px;}
+.ovc{background:#fff;border:1px solid var(--bdr);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s;text-align:center;}
+.ovc:hover{border-color:var(--ht);box-shadow:0 4px 14px rgba(0,173,239,.12);transform:translateY(-2px);}
+.ove{font-size:26px;margin-bottom:7px;}
+.ovn{font-family:'Space Grotesk',sans-serif;font-size:13.5px;font-weight:700;color:var(--hb);margin-bottom:3px;}
+.ovd{font-size:10.5px;color:var(--muted);line-height:1.4;}.ovr{margin-top:7px;font-size:11.5px;font-weight:700;color:var(--ac);}
+.wb{background:linear-gradient(135deg,#E6F9F4,#F0FFF8);border:1px solid #A8E8D0;border-radius:10px;padding:13px 17px;display:flex;align-items:center;gap:13px;margin-bottom:14px;}
+.wbt strong{font-size:13.5px;color:#1A7A48;display:block;margin-bottom:2px;}.wbt span{font-size:11.5px;color:var(--muted);}
+.ctbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px;}
+.ctbl th{background:var(--hb);color:#fff;padding:9px 13px;text-align:left;font-weight:600;font-size:11.5px;}
+.ctbl td{padding:8px 13px;border-bottom:1px solid var(--bdr);vertical-align:top;}
+.ctbl tr:last-child td{border-bottom:none;}.ctbl tr:nth-child(even) td{background:#F7F9FC;}
+.ctbl td:first-child{font-weight:600;color:var(--hb);}
+.cpnl{background:linear-gradient(135deg,#002C5F,#004080);border-radius:16px;padding:26px 30px;color:#fff;margin-bottom:18px;}
+.clbl{font-size:11.5px;opacity:.7;display:block;margin-bottom:4px;}
+.csel{width:100%;padding:9px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:12.5px;font-family:'Manrope',sans-serif;}
+.csel option{background:#002C5F;}
+.crng{width:100%;accent-color:#00ADEF;margin-top:3px;}
+.cval{font-size:12.5px;font-weight:700;color:var(--ac);margin-top:3px;}
+.cres{background:rgba(0,0,0,.25);border-radius:12px;padding:18px 22px;margin-top:18px;}
+.crg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.cri{text-align:center;}.crl{font-size:10.5px;opacity:.6;margin-bottom:3px;}
+.crv{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;}
+.cscr{background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);border-radius:8px;padding:11px 13px;font-size:12.5px;line-height:1.7;margin-top:12px;}
+.tgr{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:22px;}
+.tbox{background:var(--hb);border-radius:12px;padding:18px;text-align:center;color:#fff;}
+.tnum{font-family:'Space Grotesk',sans-serif;font-size:44px;font-weight:700;}
+.tlbl{font-size:11px;opacity:.7;margin-top:3px;}
+.tbgr{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.tbtn{border:none;border-radius:10px;padding:16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;width:100%;transition:opacity .2s;}
+.tbtn:hover{opacity:.85;}
+.cdp{background:linear-gradient(135deg,#1C0000,#5C1000);border-radius:14px;padding:22px 26px;color:#fff;text-align:center;}
+.sf{display:flex;flex-direction:column;}
+.sfi{display:flex;gap:14px;position:relative;}
+.sfi:not(:last-child)::after{content:'';position:absolute;left:17px;top:38px;width:2px;height:calc(100% - 18px);background:var(--bdr);z-index:0;}
+.sfn{width:36px;height:36px;border-radius:50%;background:var(--hb);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;flex:none;z-index:1;}
+.sfc{padding:7px 0 22px;flex:1;}
+.sft{font-size:13.5px;font-weight:700;color:var(--hb);margin-bottom:5px;}
+.sfd{font-size:12.5px;color:var(--muted);line-height:1.65;}.sfd strong{color:var(--text);}
+.wg{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:18px;}
+.wc{background:#fff;border-radius:12px;border:1px solid var(--bdr);padding:16px;border-left:4px solid var(--ht);}
+.wc.g{border-left-color:var(--gold);}.wc.b{border-left-color:var(--hb);}.wc.w{border-left-color:var(--warn);}
+.wi{font-size:20px;margin-bottom:7px;}
+.wt{font-weight:700;color:var(--hb);margin-bottom:5px;font-size:13px;}
+.wd{font-size:12.5px;color:var(--muted);line-height:1.6;}
+.qr{background:linear-gradient(135deg,#002C5F,#004080);color:#fff;border-radius:12px;padding:18px 20px;margin-bottom:14px;}
+.qrt{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:12px;}
+.qrg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.qri{background:rgba(255,255,255,.08);border-radius:8px;padding:11px;text-align:center;}
+.qrv{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;color:var(--ht);}
+.qrl{font-size:10px;opacity:.65;margin-top:2px;}
+@media(max-width:700px){.g2,.fa-g,.ly-b,.ly-p,.wg,.ovg,.tgr,.tbgr,.crg,.qrg{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="header-brand">
-    <div class="logo-h">H</div>
-    <div>
-      <div class="header-title">Hyundai EV Sales Script</div>
-      <div class="header-sub">Internal Team Reference · 2025–2026 Range</div>
-    </div>
-  </div>
-  <div class="header-badge">🔴 Live Info</div>
+  <div class="hbrand"><div class="logo">H</div><div><div class="htitle">Hyundai EV Sales Script</div><div class="hsub">Read Motor Group &mdash; Event Week 14&ndash;18 May 2026</div></div></div>
+  <div class="hbadge">Event Week</div>
 </header>
-
-<!-- MODEL NAVIGATION -->
-<nav class="model-nav" role="navigation">
-  <button class="nav-btn active" onclick="showModel('overview')">Overview</button>
-  <button class="nav-btn" onclick="showModel('inster')">INSTER <span class="nav-badge">New</span></button>
-  <button class="nav-btn" onclick="showModel('kona')">KONA Electric</button>
-  <button class="nav-btn" onclick="showModel('ioniq5')">IONIQ 5</button>
-  <button class="nav-btn" onclick="showModel('ioniq5n')">IONIQ 5 N</button>
-  <button class="nav-btn" onclick="showModel('ioniq6')">IONIQ 6</button>
-  <button class="nav-btn" onclick="showModel('ioniq9')">IONIQ 9 <span class="nav-badge">New</span></button>
+<nav>
+  <button class="nb active" onclick="show(event,'callscripts')">Call Scripts</button>
+  <button class="nb" onclick="show(event,'overview')">EV Range Overview</button>
+  <button class="nb" onclick="show(event,'inster')">INSTER <span class="nbadge">New</span></button>
+  <button class="nb" onclick="show(event,'kona')">KONA Electric</button>
+  <button class="nb" onclick="show(event,'ioniq5')">IONIQ 5</button>
+  <button class="nb" onclick="show(event,'ioniq5n')">IONIQ 5 N</button>
+  <button class="nb" onclick="show(event,'ioniq6')">IONIQ 6</button>
+  <button class="nb" onclick="show(event,'ioniq9')">IONIQ 9 <span class="nbadge">New</span></button>
+  <button class="nb" onclick="show(event,'whyev')">Why EV?</button>
+  <button class="nb" onclick="show(event,'calc')">Savings Calc</button>
+  <button class="nb" onclick="show(event,'qa')">EV Q&amp;A</button>
+  <button class="nb" onclick="show(event,'tracker')">Call Tracker</button>
 </nav>
-
-<main class="main">
-
-  <!-- ========================== OVERVIEW ========================== -->
-  <div id="sec-overview" class="model-section active">
-    <div style="margin-bottom:20px;">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--hyundai-blue);margin-bottom:6px;">Hyundai Electric Vehicle Range</div>
-      <div style="color:var(--muted);font-size:14px;">Use the tabs above to jump to any model, or click below to navigate.</div>
-    </div>
-
-    <div class="warranty-banner">
-      <div class="warranty-icon">🛡️</div>
-      <div class="warranty-text">
-        <strong>Always lead with Hyundai's Warranty</strong>
-        <span>5-Year Unlimited Mileage Warranty · 8-Year/100,000-mile Battery Warranty · 12-Year Anti-Corrosion</span>
-      </div>
-    </div>
-
-    <div class="overview-grid">
-      <div class="ov-card" onclick="showModel('inster')">
-        <div class="ov-emoji">🏙️</div>
-        <div class="ov-name">INSTER</div>
-        <div class="ov-desc">Ultra-compact city EV. Perfect entry point for new EV buyers.</div>
-        <div class="ov-range">Up to 221 mi (WLTP)</div>
-      </div>
-      <div class="ov-card" onclick="showModel('kona')">
-        <div class="ov-emoji">🚙</div>
-        <div class="ov-name">KONA Electric</div>
-        <div class="ov-desc">Family B-SUV. Practical, stylish, great value.</div>
-        <div class="ov-range">Up to 319 mi (WLTP)</div>
-      </div>
-      <div class="ov-card" onclick="showModel('ioniq5')">
-        <div class="ov-emoji">⚡</div>
-        <div class="ov-name">IONIQ 5</div>
-        <div class="ov-desc">Award-winning crossover. Retro-futuristic icon with 800V charging.</div>
-        <div class="ov-range">Up to 354 mi (WLTP)</div>
-      </div>
-      <div class="ov-card" onclick="showModel('ioniq5n')">
-        <div class="ov-emoji">🏁</div>
-        <div class="ov-name">IONIQ 5 N</div>
-        <div class="ov-desc">High-performance EV. 641 hp. The enthusiast's electric.</div>
-        <div class="ov-range">Up to 221 mi (EPA)</div>
-      </div>
-      <div class="ov-card" onclick="showModel('ioniq6')">
-        <div class="ov-emoji">💨</div>
-        <div class="ov-name">IONIQ 6</div>
-        <div class="ov-desc">Aerodynamic streamliner sedan. Longest range in the lineup.</div>
-        <div class="ov-range">Up to 382 mi (WLTP)</div>
-      </div>
-      <div class="ov-card" onclick="showModel('ioniq9')">
-        <div class="ov-emoji">🛸</div>
-        <div class="ov-name">IONIQ 9</div>
-        <div class="ov-desc">3-row flagship SUV. 7 seats, 620 km range, ultra-fast charging.</div>
-        <div class="ov-range">Up to 385 mi (WLTP)</div>
-      </div>
-    </div>
-
-    <div class="section-heading">Quick Range Comparison</div>
-    <div class="card" style="margin-bottom:16px;">
-      <table class="comp-table">
-        <thead>
-          <tr><th>Model</th><th>Battery</th><th>Range (WLTP)</th><th>0–62 mph</th><th>Charge 10–80%</th><th>Best For</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>INSTER</td><td>42–49 kWh</td><td>186–221 mi</td><td>~11 sec</td><td>~30 min</td><td>City commuters</td></tr>
-          <tr><td>KONA Electric</td><td>48–65 kWh</td><td>234–319 mi</td><td>7.8 sec</td><td>~41 min</td><td>Family SUV buyers</td></tr>
-          <tr><td>IONIQ 5</td><td>63–84 kWh</td><td>273–354 mi</td><td>5.1 sec (AWD)</td><td>18 min</td><td>Crossover fans</td></tr>
-          <tr><td>IONIQ 5 N</td><td>84 kWh</td><td>~221 mi</td><td>3.4 sec</td><td>18 min</td><td>Performance drivers</td></tr>
-          <tr><td>IONIQ 6</td><td>63–84 kWh</td><td>240–382 mi</td><td>5.1 sec (AWD)</td><td>18 min</td><td>Long-distance drivers</td></tr>
-          <tr><td>IONIQ 9</td><td>110.3 kWh</td><td>311–385 mi</td><td>5.2 sec (Perf)</td><td>24 min</td><td>Large families</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="section-heading">Universal Talking Points</div>
-    <div class="card">
-      <div class="card-title">🗣️ Use On Every Call</div>
-      <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>800V Architecture (IONIQ 5/6/9):</strong> "Most competitors use 400V charging. Hyundai's 800V system means you can charge from 10 to 80% in just 18 minutes — that's like filling a petrol car."</div></div>
-      <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>V2L (Vehicle-to-Load):</strong> "Every IONIQ can power external devices — laptops, camping equipment, even another EV. It's like having a giant portable battery pack."</div></div>
-      <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Warranty confidence:</strong> "5-Year Unlimited Mileage Warranty, 8-Year/100,000-mile Battery Warranty. One of the strongest packages in the market."</div></div>
-      <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>E-GMP Platform:</strong> "Built on Hyundai's dedicated EV platform — not a converted petrol car. More space, better balance, longer range."</div></div>
-      <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Over-The-Air Updates:</strong> "Your car gets smarter over time — software, maps, and features update wirelessly, like a smartphone."</div></div>
+<main>
+<!-- CALL SCRIPTS -->
+<div id="sec-callscripts" class="sec active">
+  <div class="evhero">
+    <div class="edbadge">14&ndash;18 May 2026 Only</div>
+    <div class="etitle">Hyundai EV Event Week</div>
+    <div class="esubtitle">Five days. Full EV range. Exclusive loyalty pricing. Use the fuel price crisis on every call &mdash; it is the most powerful conversation opener you have right now.</div>
+    <div class="ecounters">
+      <div class="ectr"><div class="ecval">5</div><div class="eclbl">Event Days</div></div>
+      <div class="ectr"><div class="ecval">157p</div><div class="eclbl">Petrol/litre</div></div>
+      <div class="ectr"><div class="ecval">188p</div><div class="eclbl">Diesel/litre</div></div>
+      <div class="ectr"><div class="ecval">+25p</div><div class="eclbl">Diesel rise since Feb</div></div>
     </div>
   </div>
 
-  <!-- ========================== INSTER ========================== -->
-  <div id="sec-inster" class="model-section">
-    <div class="hero-card">
-      <div class="hero-eyebrow">Hyundai EV Range · Entry Point</div>
-      <div class="hero-title">INSTER</div>
-      <div class="hero-tagline">Hyundai's smallest and most affordable EV. Ideal for urban driving with surprisingly clever packaging.</div>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="hero-stat-val">221mi</div><div class="hero-stat-label">Max WLTP Range</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">49kWh</div><div class="hero-stat-label">Long Range Battery</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">30min</div><div class="hero-stat-label">10–80% Charge</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">3.82m</div><div class="hero-stat-label">Length (Compact)</div></div>
+  <div class="fa">
+    <div class="fa-t">Live Fuel Prices &mdash; Know These Before Every Call</div>
+    <div class="fa-g">
+      <div class="fa-b"><div class="fa-n">157p</div><div class="fa-l">Petrol per litre (May 2026)</div><div class="fa-c">Up ~20p since late 2025</div></div>
+      <div class="fa-b"><div class="fa-n">188p</div><div class="fa-l">Diesel per litre (May 2026)</div><div class="fa-c">Up 25p since February alone</div></div>
+      <div class="fa-b"><div class="fa-n">~&pound;103</div><div class="fa-l">Avg diesel fill-up (55L tank)</div><div class="fa-c">&pound;21 more than 6 weeks ago</div></div>
+      <div class="fa-b"><div class="fa-n">200p+</div><div class="fa-l">Some London forecourts</div><div class="fa-c">Highest since 2022</div></div>
+    </div>
+    <div class="fa-note"><strong>Why:</strong> Middle East conflict (Feb 2026) disrupted Strait of Hormuz shipping &mdash; carrying ~20% of world oil. Brent crude surged past $100/barrel. Analysts warn elevated prices through summer. Use this on every call.</div>
+  </div>
+
+  <div class="ly">
+    <div class="ly-t">Q2 Loyalty Programme &mdash; Confirmed Bonuses for Existing Hyundai Customers</div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:nowrap;">
+      <div style="flex:1;min-width:0;background:#fff;border:2px solid #C9930A;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;color:#C9930A;">&pound;2,000</div>
+        <div style="font-size:12px;font-weight:700;color:#002C5F;margin-top:3px;">Any BEV</div>
+        <div style="font-size:10px;color:#6B7A8F;margin-top:3px;">IONIQ 5 &middot; 6 &middot; 9 &middot; KONA EV &middot; INSTER</div>
+      </div>
+      <div style="flex:1;min-width:0;background:#fff;border:1px solid #F0D890;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;color:#C9930A;">&pound;1,000</div>
+        <div style="font-size:12px;font-weight:700;color:#002C5F;margin-top:3px;">TUCSON</div>
+        <div style="font-size:10px;color:#6B7A8F;margin-top:3px;">All variants</div>
+      </div>
+      <div style="flex:1;min-width:0;background:#fff;border:1px solid #F0D890;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;color:#C9930A;">&pound;1,000</div>
+        <div style="font-size:12px;font-weight:700;color:#002C5F;margin-top:3px;">Santa Fe HEV</div>
+        <div style="font-size:10px;color:#6B7A8F;margin-top:3px;">Hybrid variant</div>
+      </div>
+      <div style="flex:1;min-width:0;background:#fff;border:1px solid #F0D890;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;color:#C9930A;">&pound;1,500</div>
+        <div style="font-size:12px;font-weight:700;color:#002C5F;margin-top:3px;">Santa Fe PHEV</div>
+        <div style="font-size:10px;color:#6B7A8F;margin-top:3px;">Plug-in Hybrid</div>
       </div>
     </div>
-
-    <div class="hint"><strong>Opening line:</strong> "The INSTER is Hyundai's answer for drivers who want a proper EV without the price tag. It's small on the outside but surprisingly spacious inside — and it charges faster than you'd expect."</div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">⚡ Key Specs</div>
-        <div class="spec-row"><span class="spec-label">Battery Options</span><span class="spec-val">42 kWh / 49 kWh</span></div>
-        <div class="spec-row"><span class="spec-label">WLTP Range</span><span class="spec-val highlight">186 mi / 221 mi</span></div>
-        <div class="spec-row"><span class="spec-label">Power Output</span><span class="spec-val">97 hp / 115 hp</span></div>
-        <div class="spec-row"><span class="spec-label">Max DC Charge</span><span class="spec-val">85 kW</span></div>
-        <div class="spec-row"><span class="spec-label">10–80% Charge</span><span class="spec-val highlight">~30 minutes</span></div>
-        <div class="spec-row"><span class="spec-label">Boot Space</span><span class="spec-val">280 litres</span></div>
-        <div class="spec-row"><span class="spec-label">Seats</span><span class="spec-val">4 (strict)</span></div>
-        <div class="spec-row"><span class="spec-label">Euro NCAP</span><span class="spec-val">4 Stars</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🎯 Trim Levels</div>
-        <div class="spec-row"><span class="spec-label">01 (Standard Range)</span><span class="spec-val">42 kWh · Entry</span></div>
-        <div class="spec-row"><span class="spec-label">02 (Long Range)</span><span class="spec-val">49 kWh · Mid</span></div>
-        <div class="spec-row"><span class="spec-label">INSTER Cross</span><span class="spec-val">49 kWh · Rugged style</span></div>
-        <div style="margin-top:14px;">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Tags</div>
-          <span class="tag tag-blue">Urban</span>
-          <span class="tag tag-green">Affordable</span>
-          <span class="tag tag-teal">First EV</span>
-          <span class="tag tag-orange">City Commuter</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-heading">Sales Script</div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon blue">🚀</div>
-          <div><div class="script-label">Opening Pitch</div><div class="script-sub">First 60 seconds of the call</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"The INSTER is our <strong>most accessible EV</strong> — designed from the ground up as electric, not converted. That means more interior space than you'd expect from a 3.8-metre car."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"Two battery choices: <strong>42 kWh for 186 miles</strong>, or step up to <strong>49 kWh for 221 miles</strong>. For most city drivers, 186 miles covers a week of commuting before needing a charge."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"With <strong>85 kW DC fast charging</strong>, you're back to 80% in about 30 minutes. Perfect for a coffee stop."</div></div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon orange">❓</div>
-          <div><div class="script-label">Handle Objections</div><div class="script-sub">Common pushbacks & responses</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="objection">
-          <div class="obj-q">❓ "Only 4 seats is a dealbreaker"</div>
-          <div class="obj-a">"Completely understand — if you need 5 seats, the KONA Electric is only a step up and starts from £35,000. But if your household has two cars and this is your city runner, 4 seats covers the vast majority of daily journeys."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "186 miles doesn't sound like enough"</div>
-          <div class="obj-a">"The average UK driver covers under 25 miles a day. 186 miles is over a week of typical use. And when you do need more, DC charging gets you to 80% in 30 minutes. For longer trips, we'd recommend looking at the IONIQ 5 or 6."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "It looks too small"</div>
-          <div class="obj-a">"That's a common first reaction — but the interior surprised everyone who's sat in one. Hyundai designed the electric version first, so the battery packaging gives you more floor space and head room than rivals in this class."</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon green">👤</div>
-          <div><div class="script-label">Ideal Customer Profile</div><div class="script-sub">Who to target with INSTER</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="ctype-grid">
-          <div class="ctype-card"><div class="ctype-title">🏙️ City Dweller</div><div class="ctype-points">Short daily commutes · Tight parking · Wants affordable running costs · First EV purchase</div></div>
-          <div class="ctype-card"><div class="ctype-title">👨‍👩‍👦 Second Car Household</div><div class="ctype-points">Needs a second practical car · Longer-range car already exists · Budget-conscious · Easy to charge at home</div></div>
-          <div class="ctype-card"><div class="ctype-title">🎓 Young Professionals</div><div class="ctype-points">Wants EV tech at entry price · Style matters · Small car, big features · Eco-conscious</div></div>
-          <div class="ctype-card"><div class="ctype-title">🏢 Business Fleets</div><div class="ctype-points">Urban fleet use · BIK tax savings · Low running costs · Easy to manage charging</div></div>
-        </div>
-      </div>
+    <div class="ly-tip"><strong>Say on every EV call:</strong> "As an existing Hyundai customer you qualify for our Q2 Loyalty Bonus &mdash; that is <strong>&pound;2,000 off any electric vehicle</strong> this month, on top of any finance deposit contribution and the &pound;1,500 Electric Car Grant where applicable."</div>
+    <div class="ly-p">
+      <div class="pk"><div class="pk-i">&#x1F6E1;</div><div class="pk-t">5-Year Unlimited Mileage Warranty</div><div class="pk-d">No mileage cap &mdash; strongest in the sector. EV range carries the same unbeatable promise.</div></div>
+      <div class="pk"><div class="pk-i">&#x1F50B;</div><div class="pk-t">8-Year / 100,000-Mile Battery Warranty</div><div class="pk-d">The number one barrier for hesitators. Well above industry average. Closes a huge amount of resistance.</div></div>
+      <div class="pk"><div class="pk-i">&#x1F4C5;</div><div class="pk-t">Priority Event Test Drive Slots</div><div class="pk-d">14&ndash;18 May only. Every model available. Slots are filling &mdash; loyalty bonus this week only.</div></div>
+      <div class="pk"><div class="pk-i">&#x1F4B0;</div><div class="pk-t">Live Read Motor Group Deals</div><div class="pk-d">INSTER from &pound;279/mo 0%. KONA EV from &pound;395/mo 0%. IONIQ 5 from &pound;494/mo. IONIQ 9 from &pound;599/mo.</div></div>
     </div>
   </div>
 
-  <!-- ========================== KONA ELECTRIC ========================== -->
-  <div id="sec-kona" class="model-section">
-    <div class="hero-card">
-      <div class="hero-eyebrow">Hyundai EV Range · B-SUV</div>
-      <div class="hero-title">KONA Electric</div>
-      <div class="hero-tagline">Auto Express Car of the Year winner. A spacious family B-SUV with real-world range, smart tech, and class-leading practicality.</div>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="hero-stat-val">319mi</div><div class="hero-stat-label">Max WLTP Range</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">65kWh</div><div class="hero-stat-label">Long Range Battery</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">41min</div><div class="hero-stat-label">10–80% (102 kW DC)</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">466L</div><div class="hero-stat-label">Boot Space</div></div>
-      </div>
+  <div class="sh2">The Scripts</div>
+
+  <div class="scr">
+    <div class="sh open" onclick="tog(this)">
+      <div class="shl"><div class="si red">&#x1F525;</div><div><div class="slbl">Script 1 &mdash; Event Invite: Warm / Existing Hyundai Customer</div><div class="ssub">Highest-converting this week. For anyone who has owned or enquired about a Hyundai.</div></div></div>
+      <svg class="chev open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-
-    <div class="hint"><strong>Opening line:</strong> "The new KONA Electric won Auto Express Car of the Year — and it's easy to see why. It's bigger than you'd expect, packed with tech, and gives you up to 319 miles on a charge. It's the sweet spot between affordability and capability."</div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">⚡ Key Specs</div>
-        <div class="spec-row"><span class="spec-label">Battery Options</span><span class="spec-val">48 kWh / 65 kWh</span></div>
-        <div class="spec-row"><span class="spec-label">WLTP Range</span><span class="spec-val highlight">234 mi / 319 mi</span></div>
-        <div class="spec-row"><span class="spec-label">Power Output</span><span class="spec-val">156 PS / 218 PS</span></div>
-        <div class="spec-row"><span class="spec-label">0–62 mph</span><span class="spec-val">~7.8 sec (65 kWh)</span></div>
-        <div class="spec-row"><span class="spec-label">Max DC Charge</span><span class="spec-val">102 kW</span></div>
-        <div class="spec-row"><span class="spec-label">Boot Space</span><span class="spec-val highlight">466 L (1,300 L folded)</span></div>
-        <div class="spec-row"><span class="spec-label">Drag Coefficient</span><span class="spec-val">0.275 Cd</span></div>
-        <div class="spec-row"><span class="spec-label">Drive</span><span class="spec-val">FWD</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🎯 Trim Levels (UK)</div>
-        <div class="spec-row"><span class="spec-label">Advance</span><span class="spec-val">From ~£35,000</span></div>
-        <div class="spec-row"><span class="spec-label">N Line</span><span class="spec-val">~£37,000</span></div>
-        <div class="spec-row"><span class="spec-label">N Line S</span><span class="spec-val">~£39,500</span></div>
-        <div class="spec-row"><span class="spec-label">Ultimate</span><span class="spec-val">~£39,500</span></div>
-        <div style="margin-top:12px;">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Grant eligible</div>
-          <span class="tag tag-green">£1,500 ECG Grant</span>
-        </div>
-        <div style="margin-top:10px;">
-          <span class="tag tag-blue">Family SUV</span>
-          <span class="tag tag-teal">5 Stars Comfort</span>
-          <span class="tag tag-orange">Great Value</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:16px;">
-      <div class="card-title">📐 Dimensions (vs Previous Gen)</div>
-      <div class="spec-row"><span class="spec-label">Length</span><span class="spec-val">4,350mm (+145mm)</span></div>
-      <div class="spec-row"><span class="spec-label">Wheelbase</span><span class="spec-val">2,660mm (+60mm)</span></div>
-      <div class="spec-row"><span class="spec-label">Width</span><span class="spec-val">1,825mm (+25mm)</span></div>
-      <div class="spec-row"><span class="spec-label">Rear Legroom</span><span class="spec-val">+77mm improvement</span></div>
-    </div>
-
-    <div class="section-heading">Sales Script</div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon blue">🚀</div>
-          <div><div class="script-label">Opening Pitch</div><div class="script-sub">Lead with practicality & award wins</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"The KONA Electric is our <strong>best-selling EV</strong> for good reason — it won Auto Express Car of the Year. It's grown significantly in this generation, so the back seat is genuinely comfortable for adults."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"You've got two battery choices. The <strong>Standard 48 kWh does 234 miles</strong> — more than enough for weekly use. The <strong>Long Range 65 kWh takes you to 319 miles</strong>, which is serious long-distance capability."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"Standard across all trims: <strong>dual 12.3-inch screens</strong>, Apple CarPlay, Android Auto, full safety suite. And it's eligible for the <strong>£1,500 Electric Car Grant</strong>."</div></div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon orange">❓</div>
-          <div><div class="script-label">Handle Objections</div><div class="script-sub">Objections specific to KONA Electric</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="objection">
-          <div class="obj-q">❓ "I need AWD for bad weather"</div>
-          <div class="obj-a">"The KONA is FWD — but it has active aero, traction control, and a well-weighted chassis. If AWD is essential, the IONIQ 5 is worth exploring. But most UK drivers find FWD perfectly capable year-round."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "Why not just get a petrol Kona?"</div>
-          <div class="obj-a">"The petrol starts about £9k cheaper, but consider the running costs: electricity to charge is dramatically cheaper than petrol, servicing is simpler (no oil changes, fewer brake pad replacements due to regen braking), and BIK tax for company drivers is significantly lower. The electric version often works out cheaper over 3–4 years."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "I've heard charging is annoying"</div>
-          <div class="obj-a">"Most KONA owners charge at home overnight — you wake up with a full 'tank' every morning. The 102 kW DC fast charging means a top-up on a long trip takes under 45 minutes to go from near-empty to 80%."</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon green">👤</div>
-          <div><div class="script-label">Ideal Customer Profile</div><div class="script-sub">Who buys the KONA Electric</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="ctype-grid">
-          <div class="ctype-card"><div class="ctype-title">👨‍👩‍👧 Young Family</div><div class="ctype-points">Needs practical boot · 5 seats · Good range for day trips · Affordable first EV</div></div>
-          <div class="ctype-card"><div class="ctype-title">🏢 Company Car Driver</div><div class="ctype-points">Massive BIK savings · Low running costs · Impressive spec · ECG grant eligible</div></div>
-          <div class="ctype-card"><div class="ctype-title">🛒 Replacing Petrol SUV</div><div class="ctype-points">Familiar SUV format · Better economy · Same road presence · 319 miles removes anxiety</div></div>
-          <div class="ctype-card"><div class="ctype-title">📍 Suburban Commuter</div><div class="ctype-points">30–60 mile daily commute · Charges overnight · Weekend family car too · Values reliability</div></div>
-        </div>
-      </div>
+    <div class="sb open">
+      <div class="csb"><div class="st">Opening &mdash; First 15 Seconds</div>"Hi, is that <span class="ph">[Name]</span>? It is <span class="ph">[Your Name]</span> calling from Read Hyundai. I will not take up much of your time &mdash; I am calling about something time-sensitive. <strong>Have you noticed what has happened to petrol and diesel prices this week?</strong>"</div>
+      <div class="ctip">Wait for their response. Almost every driver will say yes. Let them speak briefly, then pivot with energy.</div>
+      <div class="csb"><div class="st">The Hook &mdash; Make It Real</div>"Exactly. Petrol is sitting around <strong>157p a litre</strong>, diesel has pushed to nearly <strong>190p</strong> &mdash; up <strong>25 pence since February</strong> because of what is happening in the Middle East. A 55-litre tank now costs over <strong>&pound;100 at the pumps</strong>. Analysts are saying it will not come back down soon. That is actually exactly why I am calling today."</div>
+      <div class="csb"><div class="st">The Event Pitch</div>"We are running a special <strong>Hyundai EV Event from Wednesday 14th through to Sunday 18th May &mdash; this week only</strong>. We have the entire electric range in: the brand new <strong>IONIQ 9</strong> seven-seater, the <strong>IONIQ 5</strong> and <strong>IONIQ 6</strong>, the <strong>KONA Electric</strong>, even the brilliant little <strong>INSTER</strong>. Test drives on every model, no waiting around.<br><br>The reason I specifically wanted to call you is that as a <strong>Hyundai customer, you qualify for our Q2 Loyalty Bonus &mdash; &pound;2,000 off any electric vehicle</strong>. That is not available to the general public. We want to make switching as rewarding as possible for people who already trust Hyundai."</div>
+      <div class="ctip">Do not rush the loyalty angle. Let the &pound;2,000 land before moving to the close.</div>
+      <div class="csb"><div class="st">The Ask &mdash; Get the Booking</div>"I would love to get you in for a completely no-pressure test drive. We can sit down and run your actual numbers &mdash; exactly what you would save on fuel and tax every year. <strong>What does your diary look like between the 14th and the 18th? Would mornings or afternoons work better?</strong>"</div>
+      <div class="cwarn">Always give two time options &mdash; morning vs afternoon. Never ask "are you free?" &mdash; that invites a no.</div>
+      <div class="csb"><div class="st">If They Hesitate</div>"Absolutely no pressure. Even if you are not planning to change the car right now, with fuel at these levels it is worth knowing your options. Come in, have a coffee, sit in the new IONIQ 9 &mdash; it costs you nothing. <strong>What is the worst that can happen?</strong>"</div>
+      <div class="csb"><div class="st">Close &mdash; Confirm Everything</div>"Brilliant &mdash; I will book you in for <span class="ph">[Day, Date, Time]</span>. Best number to reach you on? Email or text for confirmation? Looking forward to seeing you, <span class="ph">[Name]</span> &mdash; I think you will be genuinely impressed."</div>
     </div>
   </div>
 
-  <!-- ========================== IONIQ 5 ========================== -->
-  <div id="sec-ioniq5" class="model-section">
-    <div class="hero-card">
-      <div class="hero-eyebrow">Hyundai EV Range · Crossover Icon</div>
-      <div class="hero-title">IONIQ 5</div>
-      <div class="hero-tagline">Multi-award-winning. Retro-futuristic design, 800V ultra-fast charging, and V2L technology. The car that redefined electric SUVs.</div>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="hero-stat-val">354mi</div><div class="hero-stat-label">Max WLTP Range</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">84kWh</div><div class="hero-stat-label">Long Range Battery</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">18min</div><div class="hero-stat-label">10–80% (800V DC)</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">320hp</div><div class="hero-stat-label">AWD Peak Power</div></div>
-      </div>
+  <div class="scr">
+    <div class="sh" onclick="tog(this)">
+      <div class="shl"><div class="si blue">&#x1F4DE;</div><div><div class="slbl">Script 2 &mdash; Cold Outreach / New Enquiry</div><div class="ssub">For new leads, online enquiries, or first-time contacts.</div></div></div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-
-    <div class="hint"><strong>Opening line:</strong> "The IONIQ 5 is probably the most recognisable electric car on the road — that pixelated design is inspired by the original 1975 Hyundai Pony. But it's the 800V charging that really sells it: 10 to 80% in just 18 minutes."</div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">⚡ Key Specs (2025 Model)</div>
-        <div class="spec-row"><span class="spec-label">Standard Range</span><span class="spec-val">63 kWh · 273 mi WLTP</span></div>
-        <div class="spec-row"><span class="spec-label">Long Range</span><span class="spec-val highlight">84 kWh · 354 mi WLTP</span></div>
-        <div class="spec-row"><span class="spec-label">RWD Power</span><span class="spec-val">168–225 hp</span></div>
-        <div class="spec-row"><span class="spec-label">AWD Power</span><span class="spec-val highlight">320 hp (0–62 in 5.1s)</span></div>
-        <div class="spec-row"><span class="spec-label">Charge Speed</span><span class="spec-val highlight">Up to 230 kW DC</span></div>
-        <div class="spec-row"><span class="spec-label">10–80% Time</span><span class="spec-val highlight">18 minutes</span></div>
-        <div class="spec-row"><span class="spec-label">V2L Capability</span><span class="spec-val">Yes (3.6 kW)</span></div>
-        <div class="spec-row"><span class="spec-label">Charging Port</span><span class="spec-val">CCS + NACS (IONIQ 9)</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">💡 Standout Features</div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Flat floor:</strong> The E-GMP platform creates a completely flat floor — more interior space, lounge-like feel.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Moving console:</strong> The centre console slides back for rear passengers to access the front.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>800V charging:</strong> One of the fastest chargers in any EV — 5 minutes adds ~53 miles.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>XRT Package (2025):</strong> Off-road styling, raised suspension for adventurous buyers.</div></div>
-      </div>
-    </div>
-
-    <div class="section-heading">Sales Script</div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon blue">🚀</div>
-          <div><div class="script-label">Opening Pitch</div><div class="script-sub">Lead with design & charging speed</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"The IONIQ 5 has won more awards than almost any other EV — World Car of the Year, Car of the Year. The design is intentionally retro-futuristic, and it turns heads everywhere."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"But what really differentiates it is <strong>800V charging</strong>. Most EVs take 30–45 minutes to reach 80% at a rapid charger. The IONIQ 5 does it in <strong>18 minutes</strong>. That changes road trips entirely."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"And with <strong>V2L — Vehicle to Load</strong> — you can plug devices in and power them from the car battery. Camping equipment, laptops, electric bikes. It's a rolling power station."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"The 2025 update brought a bigger 84 kWh battery for <strong>354 miles</strong> of range — that's genuinely continent-crossing capability."</div></div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon orange">❓</div>
-          <div><div class="script-label">Handle Objections</div><div class="script-sub">IONIQ 5 specific pushbacks</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="objection">
-          <div class="obj-q">❓ "It's more expensive than the KONA"</div>
-          <div class="obj-a">"Absolutely — but you're getting 800V charging, a bigger battery, AWD option, more interior space with the flat floor, and the moving console. If you regularly do journeys over 150 miles, the IONIQ 5's fast charging pays for itself in time saved."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "The design is a bit... unusual"</div>
-          <div class="obj-a">"Ha, it's polarising — but in a good way. It's inspired by the original 1975 Hyundai Pony, and it's won design awards globally. On the road, people stop to look at it. If you want to blend in, the IONIQ 6 is sleeker. But most people love the attention the 5 gets."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "Tesla Model Y has more boot space"</div>
-          <div class="obj-a">"The Model Y does have a slightly larger boot, true. But the IONIQ 5 has a more unique interior layout, better rear passenger space thanks to the flat floor, faster charging speed, and in our view, a more distinctive design. It's a closer comparison than people expect."</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon green">👤</div>
-          <div><div class="script-label">Ideal Customer Profile</div><div class="script-sub">Who buys the IONIQ 5</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="ctype-grid">
-          <div class="ctype-card"><div class="ctype-title">🎨 Design-Led Buyer</div><div class="ctype-points">Wants to stand out · Style priority · Tech-savvy · Willing to pay for distinctive design</div></div>
-          <div class="ctype-card"><div class="ctype-title">🛣️ Road Tripper</div><div class="ctype-points">Frequently drives 200+ miles · Values fast charging · Wants stress-free long journeys</div></div>
-          <div class="ctype-card"><div class="ctype-title">🏕️ Outdoor Adventurer</div><div class="ctype-points">V2L for camping · XRT package for style · Practical 5-seater · Flexible interior</div></div>
-          <div class="ctype-card"><div class="ctype-title">🔄 Tesla Consideration</div><div class="ctype-points">Shopping Tesla Model Y · Wants alternative · Values Hyundai warranty · Design buyer</div></div>
-        </div>
-      </div>
+    <div class="sb">
+      <div class="csb"><div class="st">Opening</div>"Hi, am I speaking with <span class="ph">[Name]</span>? It is <span class="ph">[Your Name]</span> from Read Hyundai. You came across our details recently regarding electric vehicles and I wanted to reach out personally. Is now a good moment for two minutes?"</div>
+      <div class="csb"><div class="st">Qualify First &mdash; Listen Hard</div>"Before anything else &mdash; what has been driving your interest in going electric? <em>(Their answer tells you which model to lead with and which objections to expect.)</em>"</div>
+      <div class="csb"><div class="st">The Fuel Bridge</div>"That makes a lot of sense. And with petrol at <strong>157p a litre</strong> and diesel pushing <strong>190p</strong> &mdash; up because of the Middle East situation &mdash; the timing for switching has honestly never been better. The fuel savings alone are significant, before you even factor in lower servicing and company car tax benefits."</div>
+      <div class="csb"><div class="st">Event Pitch + Close</div>"We are running a <strong>Hyundai EV Event from 14 to 18 May</strong> with test drives on the full lineup and event-exclusive deals. Based on what you mentioned, I think the <strong><span class="ph">[recommended model]</span></strong> could be a brilliant fit. <strong>What day this week works best &mdash; midweek or the weekend?</strong>"</div>
     </div>
   </div>
 
-  <!-- ========================== IONIQ 5 N ========================== -->
-  <div id="sec-ioniq5n" class="model-section">
-    <div class="hero-card" style="background:linear-gradient(135deg, #1A0033 0%, #3D0066 60%, #0D0040 100%);">
-      <div class="hero-eyebrow">Hyundai N Performance · Track-Ready EV</div>
-      <div class="hero-title">IONIQ 5 N</div>
-      <div class="hero-tagline">The most exciting performance EV you can buy. 641 hp, 3.4-second 0–62, simulated gearshifts, and N Grin Boost. This is serious.</div>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="hero-stat-val">641hp</div><div class="hero-stat-label">N Grin Boost (Burst)</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">3.4s</div><div class="hero-stat-label">0–62 mph</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">84kWh</div><div class="hero-stat-label">Battery</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">18min</div><div class="hero-stat-label">10–80% DC</div></div>
-      </div>
+  <div class="scr">
+    <div class="sh" onclick="tog(this)">
+      <div class="shl"><div class="si orange">&#x26FD;</div><div><div class="slbl">Script 3 &mdash; The Diesel Driver (High Impact)</div><div class="ssub">Diesel up 25p/litre since February. Your hottest audience this week.</div></div></div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-
-    <div class="hint"><strong>Opening line:</strong> "The IONIQ 5 N isn't just a quicker IONIQ 5 — it's been engineered by Hyundai's motorsport team as a proper performance car. Edmunds said it's 'the most enjoyable performance EV to drive.' It does 0–62 in 3.4 seconds and has features you won't find on any other EV."</div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">⚡ Performance Specs</div>
-        <div class="spec-row"><span class="spec-label">Battery</span><span class="spec-val">84 kWh</span></div>
-        <div class="spec-row"><span class="spec-label">Standard Power</span><span class="spec-val">601 hp</span></div>
-        <div class="spec-row"><span class="spec-label">N Grin Boost (burst)</span><span class="spec-val highlight">641 hp</span></div>
-        <div class="spec-row"><span class="spec-label">Torque</span><span class="spec-val">545 lb-ft (770 Nm)</span></div>
-        <div class="spec-row"><span class="spec-label">0–62 mph</span><span class="spec-val highlight">3.4 seconds</span></div>
-        <div class="spec-row"><span class="spec-label">Top Speed</span><span class="spec-val">161 mph</span></div>
-        <div class="spec-row"><span class="spec-label">EPA Range</span><span class="spec-val">221 miles</span></div>
-        <div class="spec-row"><span class="spec-label">Drive</span><span class="spec-val">AWD (dual motor)</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🏁 Exclusive N Features</div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>N e-Shift:</strong> Simulates a 6-speed DCT with paddle shifters — the feel of a manual gearbox in an EV.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>N Grin Boost:</strong>10-second burst mode unlocking the full 641 hp for overtaking or launch.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>N Drift Optimizer:</strong> Controlled oversteer mode for track use.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Track Lap Timer:</strong> Built-in lap timer and telemetry display on the instrument cluster.</div></div>
-      </div>
-    </div>
-
-    <div class="section-heading">Sales Script</div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon blue">🚀</div>
-          <div><div class="script-label">Opening Pitch</div><div class="script-sub">For the performance enthusiast</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"If someone told you they were building the world's best performance EV, you'd expect it to cost £100,000+. The IONIQ 5 N does it at around <strong>£65,800</strong>. That puts it up against Porsche Taycan and BMW i4 M50 — and in many tests, it wins."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"It's not just fast — it's <strong>engineered for engagement</strong>. The N e-Shift simulates gear changes with paddle shifters. You feel resistance and hear audio cues like a real manual. No other EV does this convincingly."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"Then there's the <strong>N Grin Boost</strong> — a 10-second burst to full 641 hp. The regular driving mode uses 601 hp, and you hit the boost button for an extra 40 hp when you need to overtake something."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"For track drivers: it has a built-in <strong>lap timer, telemetry, and N Drift Optimizer</strong>. It's been driven at the Nürburgring. It's genuinely track-ready."</div></div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon orange">❓</div>
-          <div><div class="script-label">Handle Objections</div><div class="script-sub">N-specific pushbacks</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="objection">
-          <div class="obj-q">❓ "Only 221 miles range is short for a performance car"</div>
-          <div class="obj-a">"Performance cars like the Porsche 911 also get about 20–25 mpg if you drive them hard. The IONIQ 5 N is designed for excitement, not maximum range. And with 800V fast charging, you're back to 80% in 18 minutes. Many performance drivers find this acceptable."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "Does it feel as good as a real sports car?"</div>
-          <div class="obj-a">"Edmunds called it 'the most enjoyable performance EV to drive' — not the most enjoyable EV, the most enjoyable performance car full stop. The N e-Shift and simulated audio make it genuinely involving in a way that other performance EVs don't match."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "Why not buy an M3 or RS6?"</div>
-          <div class="obj-a">"The M3 is a brilliant car. But the IONIQ 5 N is faster in most real-world scenarios, costs significantly less to run, has lower company car tax, and includes all Hyundai's warranty. The N e-Shift means you're not giving up driver engagement for the EV."</div>
-        </div>
-      </div>
+    <div class="sb">
+      <div class="csb"><div class="st">Opening &mdash; Lead Hard</div>"Hi <span class="ph">[Name]</span>, it is <span class="ph">[Your Name]</span> at Read Hyundai. I will be upfront &mdash; I am calling because I know you are in a <span class="ph">[diesel model]</span>, and with diesel at <strong>nearly 190 pence a litre</strong> &mdash; up <strong>25 pence since February alone</strong> &mdash; I wanted to talk about what your options look like."</div>
+      <div class="csb"><div class="st">Make the Pain Tangible</div>"Think about your last fill-up. A 55-litre tank is now over <strong>&pound;100</strong>. Six weeks ago that was about <strong>&pound;80</strong>. That is more than <strong>&pound;20 extra, every visit to the pumps</strong>. Analysts are not expecting it to ease before summer."</div>
+      <div class="csb"><div class="st">The Numbers</div>"Charging an EV at home costs around <strong>2&ndash;3 pence per mile</strong>. In your diesel you are spending <strong>13&ndash;15 pence per mile</strong> at current prices. On 10,000 miles a year that is a saving of <strong>over &pound;1,000 in fuel alone</strong> &mdash; plus no oil changes, no exhaust, and brakes that last far longer because of regenerative braking."</div>
+      <div class="csb"><div class="st">Event Close</div>"We have our <strong>EV Event running 14&ndash;18 May</strong> and I would love to get you in to test drive the right car and run your actual numbers. As an existing Hyundai driver your <strong>Q2 loyalty bonus takes &pound;2,000 off any EV</strong>. <strong>Can we get you in one day this week?</strong>"</div>
     </div>
   </div>
 
-  <!-- ========================== IONIQ 6 ========================== -->
-  <div id="sec-ioniq6" class="model-section">
-    <div class="hero-card" style="background:linear-gradient(135deg, #003D3A 0%, #00665C 60%, #004D45 100%);">
-      <div class="hero-eyebrow">Hyundai EV Range · Electrified Streamliner</div>
-      <div class="hero-title">IONIQ 6</div>
-      <div class="hero-tagline">World Car of the Year 2023. An ultra-aerodynamic fastback sedan with the lowest drag of any Hyundai — and up to 382 miles of range.</div>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="hero-stat-val">382mi</div><div class="hero-stat-label">Max WLTP Range (RWD)</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">0.21Cd</div><div class="hero-stat-label">Drag Coefficient</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">18min</div><div class="hero-stat-label">10–80% (800V DC)</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">350kW</div><div class="hero-stat-label">Max Charge Speed</div></div>
-      </div>
+  <div class="scr">
+    <div class="sh" onclick="tog(this)">
+      <div class="shl"><div class="si green">&#x1F46A;</div><div><div class="slbl">Script 4 &mdash; Family Buyer (IONIQ 9)</div><div class="ssub">For customers with families or who have enquired about larger vehicles.</div></div></div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-
-    <div class="hint"><strong>Opening line:</strong> "The IONIQ 6 won World Car of the Year 2023 — and it's one of the most aerodynamically efficient production cars ever made. That 0.21 drag coefficient is why it gets up to 382 miles of range. It's the longest-range Hyundai EV."</div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">⚡ Key Specs</div>
-        <div class="spec-row"><span class="spec-label">Standard Range (63 kWh)</span><span class="spec-val">~240 mi WLTP</span></div>
-        <div class="spec-row"><span class="spec-label">Long Range RWD (84 kWh)</span><span class="spec-val highlight">Up to 382 mi WLTP</span></div>
-        <div class="spec-row"><span class="spec-label">Long Range AWD</span><span class="spec-val">~316 mi WLTP</span></div>
-        <div class="spec-row"><span class="spec-label">RWD Power</span><span class="spec-val">149–225 hp</span></div>
-        <div class="spec-row"><span class="spec-label">AWD 0–62 mph</span><span class="spec-val highlight">5.1 seconds</span></div>
-        <div class="spec-row"><span class="spec-label">DC Fast Charge</span><span class="spec-val highlight">Up to 350 kW</span></div>
-        <div class="spec-row"><span class="spec-label">10–80% (800V)</span><span class="spec-val highlight">18 minutes</span></div>
-        <div class="spec-row"><span class="spec-label">Added in 15 min</span><span class="spec-val">~264 mi</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">💡 Design & Tech Highlights</div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>0.21 Cd:</strong> One of the lowest drag coefficients in any production EV — lower than a Tesla Model 3.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>800V ultra-fast:</strong> 15 minutes of charging adds 264 miles — extraordinary for long-distance driving.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Pixel LED lights:</strong> Customisable interior/exterior pixel lighting for personalisation.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>V2L:</strong> Power devices from the car battery — up to 3.6 kW external output.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Highway Driving Assist 2:</strong> Level 2 autonomous driving — automatic speed, distance, and lane changes.</div></div>
-      </div>
-    </div>
-
-    <div class="section-heading">Sales Script</div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon blue">🚀</div>
-          <div><div class="script-label">Opening Pitch</div><div class="script-sub">Lead with range & aerodynamics</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"If maximum range is what you're after, the IONIQ 6 is Hyundai's answer. With the Long Range RWD setup, you're looking at <strong>up to 382 miles on a charge</strong>. That's more than enough to drive from London to Edinburgh on a single charge."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"The reason it goes so far is that 0.21 drag coefficient — the most aerodynamic car Hyundai has ever made. Those sweeping, whale-like proportions aren't just styling, they're engineering."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"And when you do stop to charge, 15 minutes at an 800V rapid charger adds over <strong>260 miles</strong>. The IONIQ 6 genuinely makes long-distance EV travel stress-free."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"It won <strong>World Car of the Year 2023</strong>. The interior is spacious for a fastback — more rear legroom than people expect — and the pixel lighting is genuinely beautiful."</div></div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon orange">❓</div>
-          <div><div class="script-label">Handle Objections</div><div class="script-sub">IONIQ 6 specific pushbacks</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="objection">
-          <div class="obj-q">❓ "I prefer an SUV body style"</div>
-          <div class="obj-a">"The IONIQ 5 is your crossover equivalent — similar 800V tech but with a more upright, SUV-like stance. The IONIQ 6 trades that for maximum aerodynamic efficiency and range. It comes down to whether you prioritise range or body style."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "How does it compare to Tesla Model 3?"</div>
-          <div class="obj-a">"The IONIQ 6 Long Range RWD actually out-ranges the Model 3 Long Range. The IONIQ 6 also has faster charging (800V vs Tesla's 250 kW), a more spacious rear seat, and Hyundai's superior warranty. Many drivers who've tested both prefer the IONIQ 6's interior feel."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "The shape is too unusual for me"</div>
-          <div class="obj-a">"It's distinctive, for sure. But that shape is functional — it's genuinely aerodynamic engineering, not styling for styling's sake. Lots of people come in sceptical and leave converted. Can I book you a test drive?"</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon green">👤</div>
-          <div><div class="script-label">Ideal Customer Profile</div><div class="script-sub">Who buys the IONIQ 6</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="ctype-grid">
-          <div class="ctype-card"><div class="ctype-title">🛣️ Long-Distance Driver</div><div class="ctype-points">Regularly drives 200+ miles · Wants max range · Business travel · Motorway miles</div></div>
-          <div class="ctype-card"><div class="ctype-title">🚗 Sedan/Saloon Buyer</div><div class="ctype-points">Prefers lower roofline · Coming from BMW 3-Series or Audi A4 · Premium feel seeker</div></div>
-          <div class="ctype-card"><div class="ctype-title">🏆 Award-Brand Buyer</div><div class="ctype-points">Wants World Car of the Year · Prestige matters · Design-conscious</div></div>
-          <div class="ctype-card"><div class="ctype-title">🔄 Tesla Model 3 Shopper</div><div class="ctype-points">Comparing directly to Model 3 · Wants longer range · Values Hyundai warranty</div></div>
-        </div>
-      </div>
+    <div class="sb">
+      <div class="csb"><div class="st">The Reveal</div>"Hyundai have just launched the <strong>IONIQ 9</strong> &mdash; their fully electric seven-seat flagship SUV. And I mean genuinely seven seats &mdash; adults can sit comfortably in the third row. It does <strong>up to 385 miles on a single charge</strong>, has a <strong>2,500 kg towing capacity</strong>, and charges from 10 to 80% in just <strong>24 minutes</strong>. For a family holiday car it is genuinely transformative."</div>
+      <div class="csb"><div class="st">Fuel Savings + Event Close</div>"With petrol at <strong>157p</strong> and diesel nearly <strong>190p</strong>, most families save <strong>&pound;1,500 to &pound;2,500 a year in fuel</strong> after switching. We can model that for your exact mileage when you come in. The IONIQ 9 is in the showroom for our <strong>EV Event 14&ndash;18 May</strong>. <strong>Could you bring the family in one evening or Saturday?</strong>"</div>
     </div>
   </div>
 
-  <!-- ========================== IONIQ 9 ========================== -->
-  <div id="sec-ioniq9" class="model-section">
-    <div class="hero-card" style="background:linear-gradient(135deg, #1A0A00 0%, #3D1A00 60%, #2A0D00 100%);">
-      <div class="hero-eyebrow">Hyundai EV Range · Flagship 3-Row SUV</div>
-      <div class="hero-title">IONIQ 9</div>
-      <div class="hero-tagline">Hyundai's largest and most capable EV. A 3-row, 7-seat SUV with up to 385 miles of range, 350 kW charging, and next-level family luxury.</div>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="hero-stat-val">385mi</div><div class="hero-stat-label">Max WLTP Range</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">110.3kWh</div><div class="hero-stat-label">Battery (All Trims)</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">24min</div><div class="hero-stat-label">10–80% (350 kW DC)</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">7</div><div class="hero-stat-label">Seats (6-seat option)</div></div>
-      </div>
+  <div class="scr">
+    <div class="sh" onclick="tog(this)">
+      <div class="shl"><div class="si purple">&#x1F3C1;</div><div><div class="slbl">Script 5 &mdash; Performance Buyer (IONIQ 5 N)</div><div class="ssub">For enthusiasts, hot hatch owners, or anyone interested in performance.</div></div></div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-
-    <div class="hint"><strong>Opening line:</strong> "The IONIQ 9 is Hyundai's flagship — a 3-row family SUV with 7 seats, 385 miles of range, and 24-minute rapid charging. It's the first Hyundai large enough to genuinely replace a 7-seat ICE SUV with zero compromise."</div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">⚡ Powertrain Options</div>
-        <div class="spec-row"><span class="spec-label">Long Range RWD</span><span class="spec-val highlight">160 kW · 385 mi WLTP</span></div>
-        <div class="spec-row"><span class="spec-label">Long Range AWD</span><span class="spec-val">70 kW front + 160 kW rear</span></div>
-        <div class="spec-row"><span class="spec-label">Performance AWD</span><span class="spec-val highlight">160 kW front + 160 kW rear</span></div>
-        <div class="spec-row"><span class="spec-label">Performance 0–62</span><span class="spec-val">5.2 seconds</span></div>
-        <div class="spec-row"><span class="spec-label">Battery</span><span class="spec-val">110.3 kWh (all trims)</span></div>
-        <div class="spec-row"><span class="spec-label">Drag Coefficient</span><span class="spec-val">0.259 Cd (0.25 w/ dig. mirrors)</span></div>
-        <div class="spec-row"><span class="spec-label">Towing Capacity</span><span class="spec-val highlight">2,500 kg</span></div>
-        <div class="spec-row"><span class="spec-label">Max Charge Speed</span><span class="spec-val highlight">350 kW DC</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">💡 Flagship Features</div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Universal Island 2.0:</strong> Sliding centre console that can accommodate both 6 and 7-seat configurations.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Dynamic Touch Massage seats:</strong> Available premium relaxation seats in 2nd row.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>UV-C Steriliser:</strong> Built-in steriliser compartment for phones and small items.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>AI-powered Auto Terrain Mode:</strong> Automatically detects surface type and optimises traction.</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text"><strong>Trailer Mode:</strong> Detects trailer weight and adjusts range prediction automatically.</div></div>
-      </div>
-    </div>
-
-    <div class="quick-ref">
-      <div class="qr-title">⚡ Quick Range Reference (WLTP)</div>
-      <div class="qr-grid">
-        <div class="qr-item"><div class="qr-val">385mi</div><div class="qr-label">LR RWD · 19" wheels</div></div>
-        <div class="qr-item"><div class="qr-val">~350mi</div><div class="qr-label">LR AWD (est.)</div></div>
-        <div class="qr-item"><div class="qr-val">~311mi</div><div class="qr-label">Performance AWD</div></div>
-        <div class="qr-item"><div class="qr-val">24min</div><div class="qr-label">Any trim 10–80%</div></div>
-      </div>
-    </div>
-
-    <div class="section-heading">Sales Script</div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon blue">🚀</div>
-          <div><div class="script-label">Opening Pitch</div><div class="script-sub">Lead with family capability & luxury</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"For families needing 7 seats and real range, the IONIQ 9 is genuinely unlike anything else in the EV market. It's Hyundai's largest passenger EV ever, with <strong>up to 385 miles of range</strong> and a <strong>2,500 kg towing capacity</strong>."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"That 110.3 kWh battery supports <strong>350 kW ultra-fast charging</strong> — you go from 10% to 80% in just <strong>24 minutes</strong>. For a family SUV of this size, that's remarkable. Compare it to an ID.7 Tourer or Kia EV9."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"Inside, it's genuinely a premium experience. The 2nd row has optional massage seats. There's a UV-C steriliser. The Universal Island console reconfigures for 6 or 7 seats. The 3rd row is useable for adults."</div></div>
-        <div class="talking-point"><div class="tp-dot"></div><div class="tp-text">"Three powertrain choices: <strong>RWD for max range</strong>, <strong>AWD for all-weather capability</strong>, or <strong>Performance AWD at 0–62 in 5.2 seconds</strong> — that's quicker than most sports saloons."</div></div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon orange">❓</div>
-          <div><div class="script-label">Handle Objections</div><div class="script-sub">IONIQ 9 specific pushbacks</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="objection">
-          <div class="obj-q">❓ "That's a lot of money for a Hyundai"</div>
-          <div class="obj-a">"Fair point — but compare it to a Kia EV9, BMW iX7, or Mercedes EQB. The IONIQ 9 gives you more range, faster charging, and Hyundai's 5-Year Unlimited Mileage + 8-Year Battery warranty. The badge is different; the car competes directly at premium level."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "Will a 3-row EV work for long family holidays?"</div>
-          <div class="obj-a">"This is where the IONIQ 9 genuinely shines. 385 miles means you can drive from London to Edinburgh without stopping. If you do need to charge, 24 minutes is enough for the kids to get lunch and use the facilities. The Trailer Mode also adjusts your range estimate when towing."</div>
-        </div>
-        <div class="objection">
-          <div class="obj-q">❓ "How is the 3rd row for adults?"</div>
-          <div class="obj-a">"Much better than most 3-row SUVs. Hyundai quoted 80.7 combined inches of 2nd and 3rd row legroom. The 3rd row is genuinely useable for teenagers and average-sized adults on shorter journeys — and the 6-seat Premium Relaxation option makes the 2nd row like business class."</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="script-section">
-      <div class="script-header" onclick="toggleScript(this)">
-        <div class="script-header-left">
-          <div class="script-icon green">👤</div>
-          <div><div class="script-label">Ideal Customer Profile</div><div class="script-sub">Who buys the IONIQ 9</div></div>
-        </div>
-        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="script-body">
-        <div class="ctype-grid">
-          <div class="ctype-card"><div class="ctype-title">👨‍👩‍👧‍👦 Large Family</div><div class="ctype-points">3+ children · Needs 7 seats · Long holiday journeys · Dogs & bikes too · Towing occasional caravan</div></div>
-          <div class="ctype-card"><div class="ctype-title">🏡 Premium SUV Buyer</div><div class="ctype-points">Coming from Range Rover Sport / BMW X5 / Audi Q7 · Wants premium without ICE · Ready for EV</div></div>
-          <div class="ctype-card"><div class="ctype-title">🐕 Active Family</div><div class="ctype-points">Outdoors lifestyle · Towing boats or horseboxes · 2,500 kg tow capacity · AWD for country roads</div></div>
-          <div class="ctype-card"><div class="ctype-title">🏢 Executive Chauffeur</div><div class="ctype-points">Wants premium 3-row · Client comfort priority · Long-range needed · ZEV for zones</div></div>
-        </div>
-      </div>
+    <div class="sb">
+      <div class="csb"><div class="st">Hook With Credibility</div>"Have you seen what Edmunds said about the <strong>Hyundai IONIQ 5 N</strong>? They called it the most enjoyable performance car to drive &mdash; not EV, performance car. <strong>641 horsepower. 0&ndash;62 in 3.4 seconds.</strong> It has paddle-shift simulation that genuinely feels like a manual sports car. Nurburgring-tested. Faster than a BMW M3 in most real-world scenarios."</div>
+      <div class="csb"><div class="st">Fuel + Event Close</div>"At <strong>157p for petrol</strong> you are spending &pound;150&ndash;180 every fill-up in a performance car. The IONIQ 5 N costs a fraction of that to charge. We have it available at our <strong>EV Event 14&ndash;18 May</strong>. I can have it set up in Sport mode so you get the full experience. <strong>Thursday or Friday &mdash; which works better?</strong>"</div>
     </div>
   </div>
+
+  <div class="scr">
+    <div class="sh" onclick="tog(this)">
+      <div class="shl"><div class="si gold">&#x1F4F1;</div><div><div class="slbl">Script 6 &mdash; Voicemail + Follow-Up Text</div><div class="ssub">30 seconds max. Always follow with a text within 10 minutes.</div></div></div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="sb">
+      <div class="csb"><div class="st">30-Second Voicemail</div>"Hi <span class="ph">[Name]</span>, it is <span class="ph">[Your Name]</span> from Read Hyundai. Quick message &mdash; with fuel prices the way they are, diesel nearly 190p a litre, I wanted to reach out personally. We are running a <strong>Hyundai EV Event from 14 to 18 May</strong> with test drives on the full range and exclusive loyalty deals. Give me a call back on <span class="ph">[number]</span> &mdash; no obligation. Speak soon!"</div>
+      <div class="ctip"><strong>Follow-up text within 10 mins:</strong> "Hi [Name] &mdash; [Your Name] from Read Hyundai. Just left you a voicemail about our EV Event 14&ndash;18 May. Great loyalty deals this week &mdash; give me a ring when free! [number]" &mdash; Texts after voicemails significantly increase callback rates.</div>
+    </div>
+  </div>
+
+  <div class="sh2">Objection Handling</div>
+  <div class="scr">
+    <div class="sh" onclick="tog(this)">
+      <div class="shl"><div class="si orange">&#x2753;</div><div><div class="slbl">Common Objections &amp; Quick Responses</div><div class="ssub">You will hear every one of these this week. Have them ready.</div></div></div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="sb">
+      <div class="obj"><div class="oq">"I am not ready to buy yet"</div><div class="oa">"Absolutely fine &mdash; I am not asking you to. This is purely about giving you the information. With fuel where it is, knowing your options is useful whether that is now or in six months. Test drives are free, no pressure."</div></div>
+      <div class="obj"><div class="oq">"I am worried about range and charging"</div><div class="oa">"That is the most common concern and it is valid. Which is exactly why a test drive is so useful &mdash; we show you the real charging network, how home charging works overnight, and the actual range figures for your mileage. Most people who come in with that concern leave feeling completely different."</div></div>
+      <div class="obj"><div class="oq">"EVs are too expensive"</div><div class="oa">"The upfront cost can feel that way &mdash; but when you factor in 157p/litre petrol, lower servicing, and company car tax savings, the monthly difference is often much smaller than people expect. And as a Hyundai customer the &pound;2,000 Q2 loyalty bonus bridges that gap immediately."</div></div>
+      <div class="obj"><div class="oq">"I have heard the batteries do not last"</div><div class="oa">"Hyundai backs every battery with an 8-year, 100,000-mile warranty &mdash; one of the strongest in the industry. Batteries typically retain 70&ndash;80% capacity after 8&ndash;10 years. You are fully covered."</div></div>
+      <div class="obj"><div class="oq">"I cannot make it this week"</div><div class="oa">"No problem. Can I call you in a couple of weeks? The &pound;2,000 loyalty pricing is the main thing I would hate you to miss. I will ring you on <span class="ph">[specific date]</span> if that works?"</div></div>
+    </div>
+  </div>
+
+  <div class="sh2">Daily Team Reminders</div>
+  <div class="card">
+    <div class="sf">
+      <div class="sfi"><div class="sfn">1</div><div class="sfc"><div class="sft">Open with the fuel price &mdash; every single call</div><div class="sfd">Petrol <strong>157p/litre</strong>. Diesel <strong>188p/litre</strong>. Up 25p since February. A 55L diesel fill-up is now <strong>over &pound;100</strong>. Use specific numbers &mdash; real figures create real urgency.</div></div></div>
+      <div class="sfi"><div class="sfn">2</div><div class="sfc"><div class="sft">Lead with loyalty &mdash; personalise every call</div><div class="sfd">Say "as one of our loyal Hyundai customers" early. The <strong>&pound;2,000 BEV loyalty bonus</strong> is the real reason you are calling them specifically &mdash; use it as that reason.</div></div></div>
+      <div class="sfi"><div class="sfn">3</div><div class="sfc"><div class="sft">Match the model before you dial</div><div class="sfd">City &rarr; <strong>INSTER</strong>. Family &rarr; <strong>KONA / IONIQ 9</strong>. Crossover &rarr; <strong>IONIQ 5</strong>. Performance &rarr; <strong>IONIQ 5 N</strong>. Long-distance &rarr; <strong>IONIQ 6</strong>. Large family / towing &rarr; <strong>IONIQ 9</strong>.</div></div></div>
+      <div class="sfi"><div class="sfn">4</div><div class="sfc"><div class="sft">The goal of every call is a test drive booking</div><div class="sfd">Not a sale. Not a follow-up. A confirmed slot, 14&ndash;18 May. Everything else flows from getting them through the door.</div></div></div>
+      <div class="sfi"><div class="sfn">5</div><div class="sfc"><div class="sft">Use the Savings Calc tab with them live on the call</div><div class="sfd">Enter their mileage and fuel type while they are on the phone, then read them the generated script line. Personalised numbers land far harder than generic ones.</div></div></div>
+    </div>
+  </div>
+</div>
+<!-- EV RANGE OVERVIEW -->
+<div id="sec-overview" class="sec">
+  <div style="font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;color:var(--hb);margin-bottom:5px;">Hyundai Electric Vehicle Range 2025&ndash;2026</div>
+  <div style="color:var(--muted);font-size:13.5px;margin-bottom:18px;">Click any model to jump to its detailed script and objection guide.</div>
+  <div class="wb"><div style="font-size:26px;">&#x1F6E1;</div><div class="wbt"><strong>Lead With the Warranty &mdash; Every Time</strong><span>5-Year Unlimited Mileage Warranty &middot; 8-Year/100,000-mile Battery Warranty &middot; 12-Year Anti-Corrosion</span></div></div>
+  <div class="ovg">
+    <div class="ovc" onclick="showD('inster')"><div class="ove">&#x1F3D9;</div><div class="ovn">INSTER</div><div class="ovd">Ultra-compact city EV. Best entry point. Surprisingly spacious inside.</div><div class="ovr">Up to 221 mi WLTP</div></div>
+    <div class="ovc" onclick="showD('kona')"><div class="ove">&#x1F699;</div><div class="ovn">KONA Electric</div><div class="ovd">Car of the Year winner. Spacious family B-SUV, great value.</div><div class="ovr">Up to 319 mi WLTP</div></div>
+    <div class="ovc" onclick="showD('ioniq5')"><div class="ove">&#x26A1;</div><div class="ovn">IONIQ 5</div><div class="ovd">Award-winning crossover. 800V charging. Retro-futuristic icon.</div><div class="ovr">Up to 354 mi WLTP</div></div>
+    <div class="ovc" onclick="showD('ioniq5n')"><div class="ove">&#x1F3C1;</div><div class="ovn">IONIQ 5 N</div><div class="ovd">641 hp. 3.4s 0&ndash;62. Most exciting performance EV on sale.</div><div class="ovr">221 mi EPA &middot; 3.4s</div></div>
+    <div class="ovc" onclick="showD('ioniq6')"><div class="ove">&#x1F4A8;</div><div class="ovn">IONIQ 6</div><div class="ovd">World Car of the Year 2023. 0.21 Cd. Longest range in lineup.</div><div class="ovr">Up to 382 mi WLTP</div></div>
+    <div class="ovc" onclick="showD('ioniq9')"><div class="ove">&#x1F6F8;</div><div class="ovn">IONIQ 9</div><div class="ovd">Flagship 3-row SUV. 7 seats. 385 mi. 2,500 kg towing.</div><div class="ovr">Up to 385 mi WLTP</div></div>
+  </div>
+  <div class="sh2">Model Comparison</div>
+  <div class="card" style="margin-bottom:18px;">
+    <table class="ctbl">
+      <thead><tr><th>Model</th><th>Battery</th><th>Range (WLTP)</th><th>0&ndash;62</th><th>Charge 10&ndash;80%</th><th>PCP From</th><th>Best For</th></tr></thead>
+      <tbody>
+        <tr><td>INSTER</td><td>42&ndash;49 kWh</td><td>186&ndash;221 mi</td><td>~11s</td><td>~30 min</td><td>&pound;279/mo 0%</td><td>City / first EV</td></tr>
+        <tr><td>KONA Electric</td><td>48&ndash;65 kWh</td><td>234&ndash;319 mi</td><td>7.8s</td><td>~41 min</td><td>&pound;395/mo 0%</td><td>Family SUV</td></tr>
+        <tr><td>IONIQ 5</td><td>63&ndash;84 kWh</td><td>273&ndash;354 mi</td><td>5.1s AWD</td><td>18 min</td><td>&pound;494/mo 3.9%</td><td>Crossover / road trips</td></tr>
+        <tr><td>IONIQ 5 N</td><td>84 kWh</td><td>~221 mi</td><td>3.4s</td><td>18 min</td><td>&pound;792/mo 6.9%</td><td>Performance</td></tr>
+        <tr><td>IONIQ 6</td><td>63&ndash;84 kWh</td><td>240&ndash;382 mi</td><td>5.1s AWD</td><td>18 min</td><td>&pound;589/mo 3.9%</td><td>Long-distance / saloon</td></tr>
+        <tr><td>IONIQ 9</td><td>110.3 kWh</td><td>311&ndash;385 mi</td><td>5.2s Perf</td><td>24 min</td><td>&pound;599/mo 3.9%</td><td>Large family / towing</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="sh2">Universal Talking Points</div>
+  <div class="card">
+    <div class="ct">Use on Every Call</div>
+    <div class="tp"><div class="tpd"></div><div class="tpt"><strong>800V Architecture (IONIQ 5/6/9):</strong> "Most competitors use 400V. Hyundai's 800V means 10&ndash;80% in 18 minutes &mdash; faster than filling a petrol car and paying."</div></div>
+    <div class="tp"><div class="tpd"></div><div class="tpt"><strong>V2L (Vehicle-to-Load):</strong> "Every IONIQ can power external devices &mdash; laptops, camping gear, even another EV. A rolling power station."</div></div>
+    <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Warranty:</strong> "5-Year Unlimited Mileage, 8-Year Battery Warranty. One of the strongest packages in the market, bar none."</div></div>
+    <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Fuel saving:</strong> "2&ndash;3p per mile to charge vs 13&ndash;15p per mile in diesel at today's prices. On 10,000 miles that's over &pound;1,000 saved in fuel alone."</div></div>
+    <div class="tp"><div class="tpd"></div><div class="tpt"><strong>OTA Updates:</strong> "The car gets smarter over time &mdash; software, maps and features update wirelessly. Like a smartphone, but a car."</div></div>
+  </div>
+</div>
+
+<!-- INSTER -->
+<div id="sec-inster" class="sec">
+  <div class="hero"><div class="hey">Entry Point</div><div class="ht2">INSTER</div><div class="htag">Designed electric-first. Interior space surprises everyone. 221 miles covers a week of typical UK driving. The perfect first EV.</div><div class="hst"><div><div class="hsv">221mi</div><div class="hsl">Max WLTP Range</div></div><div><div class="hsv">49kWh</div><div class="hsl">Long Range Battery</div></div><div><div class="hsv">30min</div><div class="hsl">10&ndash;80% DC</div></div><div><div class="hsv">&pound;279/mo</div><div class="hsl">0% APR + &pound;1k loyalty</div></div></div></div>
+  <div class="hint"><strong>Open with:</strong> "Hyundai designed the electric version first &mdash; so unlike most small cars, the INSTER's interior space genuinely surprises people. And 221 miles covers the average UK driver for over a week before they need to plug in."</div>
+  <div class="g2">
+    <div class="card"><div class="ct">Key Specs</div><div class="sr"><span class="sl">Batteries</span><span class="sv">42 kWh / 49 kWh</span></div><div class="sr"><span class="sl">WLTP Range</span><span class="sv hl">186 mi / 221 mi</span></div><div class="sr"><span class="sl">Power</span><span class="sv">97 hp / 115 hp</span></div><div class="sr"><span class="sl">Max DC Charge</span><span class="sv">85 kW</span></div><div class="sr"><span class="sl">10&ndash;80%</span><span class="sv hl">~30 minutes</span></div><div class="sr"><span class="sl">Boot</span><span class="sv">280 litres</span></div><div class="sr"><span class="sl">Seats</span><span class="sv">4</span></div><div class="sr"><span class="sl">Euro NCAP</span><span class="sv">4 Stars</span></div></div>
+    <div class="card"><div class="ct">Current Deals</div><div class="sr"><span class="sl">PCP 02 49kWh</span><span class="sv hl">&pound;279/mo &middot; 0% APR + &pound;1k loyalty</span></div><div class="sr"><span class="sl">PCP 01 42kWh</span><span class="sv">&pound;265/mo &middot; 3.9% + &pound;3,750 FDC</span></div><div class="sr"><span class="sl">PCH 02 49kWh</span><span class="sv">&pound;329/mo &middot; &pound;1,974 initial</span></div><div class="sr"><span class="sl">BCH 02 49kWh</span><span class="sv">&pound;274+VAT/mo</span></div><div class="sr"><span class="sl">Loyalty Bonus</span><span class="sv hl">+&pound;2,000 existing customers</span></div></div>
+  </div>
+  <div class="obj"><div class="oq">"Only 4 seats"</div><div class="oa">"If you need 5 seats the KONA Electric is the natural step up. But for city driving or as a second car, 4 seats covers almost every real-world journey."</div></div>
+  <div class="obj"><div class="oq">"186 miles is not enough"</div><div class="oa">"The average UK driver covers under 25 miles a day &mdash; 186 miles is over a week of typical use. And 85 kW DC charging gets you back to 80% in about 30 minutes on the rare long day."</div></div>
+</div>
+
+<!-- KONA -->
+<div id="sec-kona" class="sec">
+  <div class="hero"><div class="hey">Family B-SUV</div><div class="ht2">KONA Electric</div><div class="htag">Auto Express Car of the Year. Bigger than ever, 319 miles of real-world range, and genuine family practicality at a compelling price.</div><div class="hst"><div><div class="hsv">319mi</div><div class="hsl">Max WLTP Range</div></div><div><div class="hsv">65kWh</div><div class="hsl">Long Range Battery</div></div><div><div class="hsv">102kW</div><div class="hsl">Max DC Charge</div></div><div><div class="hsv">466L</div><div class="hsl">Boot Space</div></div></div></div>
+  <div class="hint"><strong>Open with:</strong> "The KONA Electric won Auto Express Car of the Year. It has grown significantly this generation &mdash; the boot and rear legroom now genuinely stack up against much bigger cars. 319 miles and 102 kW charging make it a proper all-rounder."</div>
+  <div class="g2">
+    <div class="card"><div class="ct">Key Specs</div><div class="sr"><span class="sl">Batteries</span><span class="sv">48 kWh / 65 kWh</span></div><div class="sr"><span class="sl">WLTP Range</span><span class="sv hl">234 mi / 319 mi</span></div><div class="sr"><span class="sl">Power</span><span class="sv">156 PS / 218 PS</span></div><div class="sr"><span class="sl">0&ndash;62 mph</span><span class="sv">7.8 sec</span></div><div class="sr"><span class="sl">Boot</span><span class="sv hl">466 L / 1,300 L folded</span></div><div class="sr"><span class="sl">ECG Grant</span><span class="sv hl">&pound;1,500 eligible</span></div></div>
+    <div class="card"><div class="ct">Current Deals</div><div class="sr"><span class="sl">PCP Advance 65kWh</span><span class="sv hl">&pound;395/mo &middot; &pound;4,000 dep &middot; 0%</span></div><div class="sr"><span class="sl">PCH N Line 65kWh</span><span class="sv">&pound;419.70/mo &middot; &pound;2,518 initial</span></div><div class="sr"><span class="sl">BCH N Line 65kWh</span><span class="sv">&pound;349+VAT/mo</span></div><div class="sr"><span class="sl">Loyalty Bonus</span><span class="sv hl">+&pound;2,000 existing customers</span></div></div>
+  </div>
+  <div class="obj"><div class="oq">"Why not petrol Kona?"</div><div class="oa">"At 157p/litre, electricity is dramatically cheaper per mile. Most KONA EV owners save over &pound;1,000 a year in fuel &mdash; plus lower BIK tax and simpler servicing. Over 3&ndash;4 years the EV usually costs less."</div></div>
+  <div class="obj"><div class="oq">"I need AWD"</div><div class="oa">"KONA is FWD &mdash; the IONIQ 5 is the natural AWD step. But most UK drivers find FWD perfectly capable year-round."</div></div>
+</div>
+
+<!-- IONIQ 5 -->
+<div id="sec-ioniq5" class="sec">
+  <div class="hero"><div class="hey">Crossover Icon</div><div class="ht2">IONIQ 5</div><div class="htag">World Car of the Year. 800V ultra-fast charging. V2L. Flat floor. Inspired by the 1975 Pony. Redefined what an EV crossover could be.</div><div class="hst"><div><div class="hsv">354mi</div><div class="hsl">Max WLTP Range</div></div><div><div class="hsv">84kWh</div><div class="hsl">Long Range Battery</div></div><div><div class="hsv">18min</div><div class="hsl">10&ndash;80% at 800V</div></div><div><div class="hsv">320hp</div><div class="hsl">AWD Peak Power</div></div></div></div>
+  <div class="hint"><strong>Open with:</strong> "The IONIQ 5 won World Car of the Year &mdash; and the 800V charging is what really sets it apart. Five minutes adds 53 miles. 18 minutes takes you from nearly empty to 80%. Road trips become genuinely stress-free."</div>
+  <div class="g2">
+    <div class="card"><div class="ct">Key Specs (2025)</div><div class="sr"><span class="sl">Standard Range (63 kWh)</span><span class="sv">273 mi WLTP</span></div><div class="sr"><span class="sl">Long Range (84 kWh)</span><span class="sv hl">354 mi WLTP</span></div><div class="sr"><span class="sl">AWD Power</span><span class="sv hl">320 hp &middot; 5.1s 0&ndash;62</span></div><div class="sr"><span class="sl">DC Charge Speed</span><span class="sv hl">Up to 230 kW</span></div><div class="sr"><span class="sl">V2L</span><span class="sv">Yes &mdash; 3.6 kW</span></div><div class="sr"><span class="sl">PCP Deal</span><span class="sv hl">&pound;494/mo &middot; &pound;4,500 dep &middot; 3.9%</span></div></div>
+    <div class="card"><div class="ct">What Makes It Special</div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Flat floor:</strong> E-GMP platform &mdash; zero tunnel, lounge-like interior.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>5 min = 53 miles:</strong> Among the fastest charging of any production EV.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Sliding console:</strong> Moves back for rear passenger access.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>XRT Package (2025):</strong> Off-road styling, raised suspension.</div></div>
+    </div>
+  </div>
+  <div class="obj"><div class="oq">"More expensive than KONA"</div><div class="oa">"You get 800V charging, bigger battery, AWD option, flat floor with sliding console, and V2L. For frequent long-distance drivers the 18-minute charge time pays for itself in time saved."</div></div>
+  <div class="obj"><div class="oq">"Tesla Model Y has bigger boot"</div><div class="oa">"The Y has slightly more volume &mdash; but the IONIQ 5 charges faster, has better rear passenger comfort from the flat floor, more distinctive design, and Hyundai's superior warranty. Most buyers who test both find it much closer than expected."</div></div>
+</div>
+
+<!-- IONIQ 5 N -->
+<div id="sec-ioniq5n" class="sec">
+  <div class="hero" style="background:linear-gradient(135deg,#1A0033,#3D0066,#0D0040);"><div class="hey">N Performance &middot; Track-Ready EV</div><div class="ht2">IONIQ 5 N</div><div class="htag">641 hp. 3.4s 0&ndash;62. Simulated gearshifts. Nurburgring-tested. Edmunds most enjoyable performance car. Full stop.</div><div class="hst"><div><div class="hsv">641hp</div><div class="hsl">N Grin Boost (burst)</div></div><div><div class="hsv">3.4s</div><div class="hsl">0&ndash;62 mph</div></div><div><div class="hsv">84kWh</div><div class="hsl">Battery</div></div><div><div class="hsv">18min</div><div class="hsl">10&ndash;80% DC</div></div></div></div>
+  <div class="hint"><strong>Open with:</strong> "Edmunds called the IONIQ 5 N the most enjoyable performance car to drive &mdash; not EV, performance car. 641 hp, 3.4 seconds, and paddle-shift simulation that genuinely feels like a manual sports car."</div>
+  <div class="g2">
+    <div class="card"><div class="ct">Performance Specs</div><div class="sr"><span class="sl">Standard Power</span><span class="sv">601 hp</span></div><div class="sr"><span class="sl">N Grin Boost (burst)</span><span class="sv hl">641 hp</span></div><div class="sr"><span class="sl">Torque</span><span class="sv">545 lb-ft / 770 Nm</span></div><div class="sr"><span class="sl">0&ndash;62 mph</span><span class="sv hl">3.4 seconds</span></div><div class="sr"><span class="sl">Top Speed</span><span class="sv">161 mph</span></div><div class="sr"><span class="sl">PCP Deal</span><span class="sv">&pound;792/mo &middot; &pound;7,999 dep &middot; 6.9%</span></div></div>
+    <div class="card"><div class="ct">Exclusive N Features</div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>N e-Shift:</strong> Simulated 6-speed DCT via paddles &mdash; feels like a real manual.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>N Grin Boost:</strong> 10-second burst to full 641 hp for overtaking.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>N Drift Optimizer:</strong> Controlled oversteer for track days.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Lap Timer:</strong> Track telemetry on the instrument cluster.</div></div>
+    </div>
+  </div>
+  <div class="obj"><div class="oq">"Only 221 miles range"</div><div class="oa">"A Porsche 911 gets 25 mpg driven hard. The N is a performance car &mdash; not a range car. And 800V means 18 minutes to 80%. Most performance drivers find this completely workable."</div></div>
+  <div class="obj"><div class="oq">"Why not BMW M3 or Audi RS3?"</div><div class="oa">"Quicker in most real-world scenarios, dramatically cheaper to run, much lower company car tax. N e-Shift means you lose nothing in driver engagement."</div></div>
+</div>
+
+<!-- IONIQ 6 -->
+<div id="sec-ioniq6" class="sec">
+  <div class="hero" style="background:linear-gradient(135deg,#003D3A,#00665C,#004D45);"><div class="hey">Electrified Streamliner</div><div class="ht2">IONIQ 6</div><div class="htag">World Car of the Year 2023. 0.21 drag coefficient. Up to 382 miles. Add 264 miles in 15 minutes. The long-distance champion.</div><div class="hst"><div><div class="hsv">382mi</div><div class="hsl">Max WLTP (LR RWD)</div></div><div><div class="hsv">0.21Cd</div><div class="hsl">Drag Coefficient</div></div><div><div class="hsv">18min</div><div class="hsl">10&ndash;80% at 800V</div></div><div><div class="hsv">264mi</div><div class="hsl">Added in 15 min</div></div></div></div>
+  <div class="hint"><strong>Open with:</strong> "The IONIQ 6 has the longest range of any Hyundai EV &mdash; up to 382 miles. And 15 minutes of 800V charging adds 264 miles. It won World Car of the Year 2023 for a reason."</div>
+  <div class="g2">
+    <div class="card"><div class="ct">Key Specs</div><div class="sr"><span class="sl">Long Range RWD</span><span class="sv hl">Up to 382 mi WLTP</span></div><div class="sr"><span class="sl">Long Range AWD</span><span class="sv">~316 mi WLTP</span></div><div class="sr"><span class="sl">AWD 0&ndash;62</span><span class="sv hl">5.1 seconds</span></div><div class="sr"><span class="sl">DC Fast Charge</span><span class="sv hl">Up to 350 kW</span></div><div class="sr"><span class="sl">10&ndash;80%</span><span class="sv hl">18 minutes</span></div><div class="sr"><span class="sl">PCP Deal</span><span class="sv hl">&pound;589/mo &middot; &pound;4,500 dep &middot; 3.9%</span></div></div>
+    <div class="card"><div class="ct">Differentiators</div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>0.21 Cd:</strong> Lower drag than Tesla Model 3 &mdash; that is why the range is so exceptional.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>264 miles in 15 min:</strong> Best-in-class for long-distance rapid charging stops.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>V2L:</strong> Power external devices &mdash; 3.6 kW output.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>HDA 2:</strong> Level 2 autonomous driving &mdash; speed, distance, lane changes.</div></div>
+    </div>
+  </div>
+  <div class="obj"><div class="oq">"I prefer an SUV"</div><div class="oa">"The IONIQ 5 is your crossover equivalent &mdash; same 800V tech, more upright stance. The IONIQ 6 trades that for maximum aerodynamic efficiency and the longest range in the lineup."</div></div>
+  <div class="obj"><div class="oq">"Tesla Model 3 comparison?"</div><div class="oa">"IONIQ 6 LR RWD out-ranges the Model 3 Long Range, charges faster at 800V, has more rear seat space, and comes with Hyundai's superior 5+8 year warranty."</div></div>
+</div>
+
+<!-- IONIQ 9 -->
+<div id="sec-ioniq9" class="sec">
+  <div class="hero" style="background:linear-gradient(135deg,#1A0A00,#3D1A00,#2A0D00);"><div class="hey">Flagship 3-Row SUV</div><div class="ht2">IONIQ 9</div><div class="htag">7 seats. 385 miles. 2,500 kg towing. 24-minute rapid charge. Nothing else does all four without compromise.</div><div class="hst"><div><div class="hsv">385mi</div><div class="hsl">Max WLTP Range</div></div><div><div class="hsv">110.3kWh</div><div class="hsl">Battery (all trims)</div></div><div><div class="hsv">24min</div><div class="hsl">10&ndash;80% at 350kW</div></div><div><div class="hsv">2,500kg</div><div class="hsl">Towing Capacity</div></div></div></div>
+  <div class="hint"><strong>Open with:</strong> "The IONIQ 9 answers the question: can a 7-seat family SUV go fully electric without compromise? 385 miles, adults in the third row, 2,500 kg towing, and 24 minutes to charge from 10 to 80%."</div>
+  <div class="g2">
+    <div class="card"><div class="ct">Powertrain Options</div><div class="sr"><span class="sl">Long Range RWD</span><span class="sv hl">160 kW &middot; 385 mi WLTP</span></div><div class="sr"><span class="sl">Long Range AWD</span><span class="sv">70kW front + 160kW rear</span></div><div class="sr"><span class="sl">Performance AWD</span><span class="sv hl">320kW total &middot; 5.2s 0&ndash;62</span></div><div class="sr"><span class="sl">Towing Capacity</span><span class="sv hl">2,500 kg</span></div><div class="sr"><span class="sl">PCP Deal</span><span class="sv hl">&pound;599/mo &middot; &pound;9,999 dep &middot; 3.9%</span></div><div class="sr"><span class="sl">BCH Deal</span><span class="sv">&pound;639+VAT/mo &middot; &pound;3,834+VAT initial</span></div></div>
+    <div class="card"><div class="ct">Flagship Features</div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Universal Island 2.0:</strong> Sliding console &mdash; 6 or 7-seat configuration.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Massage Seats:</strong> Dynamic Touch option in 2nd row.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>UV-C Steriliser:</strong> Built-in steriliser for phones and small items.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Smart Trailer Mode:</strong> Auto-adjusts range prediction when towing.</div></div>
+    </div>
+  </div>
+  <div class="qr"><div class="qrt">Range at a Glance</div><div class="qrg"><div class="qri"><div class="qrv">385mi</div><div class="qrl">LR RWD (19" wheels)</div></div><div class="qri"><div class="qrv">~350mi</div><div class="qrl">LR AWD (est.)</div></div><div class="qri"><div class="qrv">~311mi</div><div class="qrl">Performance AWD</div></div><div class="qri"><div class="qrv">24min</div><div class="qrl">10&ndash;80% any trim</div></div></div></div>
+  <div class="obj"><div class="oq">"That is expensive for a Hyundai"</div><div class="oa">"Compare directly to Kia EV9, BMW iX7, or Mercedes EQB &mdash; the IONIQ 9 matches or beats them on range and charging speed, with Hyundai's 5-Year Unlimited Mileage + 8-Year Battery warranty included."</div></div>
+  <div class="obj"><div class="oq">"Will it work for family holidays?"</div><div class="oa">"385 miles means London to Edinburgh without a charge stop. If you do stop, 24 minutes takes you from near-empty to 80%. Trailer Mode adjusts range prediction automatically when towing. It is the most capable family holiday EV on the market."</div></div>
+</div>
+<!-- WHY EV -->
+<div id="sec-whyev" class="sec">
+  <div style="font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;color:var(--hb);margin-bottom:5px;">Why Drive an EV?</div>
+  <div style="color:var(--muted);font-size:13.5px;margin-bottom:18px;">10 powerful reasons &mdash; use these on every call when a customer needs convincing.</div>
+  <div class="wg">
+    <div class="wc"><div class="wi">&#x1F4B0;</div><div class="wt">1. Lower Running Costs</div><div class="wd">Charging at home costs roughly <strong>3&ndash;5p per mile</strong> vs <strong>15&ndash;20p per mile</strong> in petrol. On 10,000 miles a year that is over <strong>&pound;1,000 saved in fuel alone</strong>.</div></div>
+    <div class="wc"><div class="wi">&#x1F527;</div><div class="wt">2. Reduced Maintenance</div><div class="wd">No oil changes, no spark plugs, no timing belt, no exhaust. Regenerative braking means <strong>brake pads last far longer</strong>. Fewer parts = fewer bills.</div></div>
+    <div class="wc g"><div class="wi">&#x1F33F;</div><div class="wt">3. Zero Tailpipe Emissions</div><div class="wd">Better air quality near schools and in cities. Many customers feel strongly about this &mdash; do not skip it.</div></div>
+    <div class="wc g"><div class="wi">&#x1F3D9;</div><div class="wt">4. No ULEZ / CAZ Charges</div><div class="wd">EVs exempt from Clean Air Zone charges across UK cities. For London commuters this alone can save <strong>thousands per year</strong>.</div></div>
+    <div class="wc b"><div class="wi">&#x1F3E2;</div><div class="wt">5. Company Car Tax (BIK)</div><div class="wd">BIK rate for EVs is just <strong>3%</strong> vs 25&ndash;37% for petrol/diesel. A higher-rate taxpayer in an IONIQ 5 saves <strong>&pound;4,000&ndash;&pound;6,000/year</strong> vs a comparable petrol car.</div></div>
+    <div class="wc b"><div class="wi">&#x26A1;</div><div class="wt">6. Instant Torque</div><div class="wd">Full torque from 0 rpm &mdash; smooth, silent, rapid. The IONIQ 5 AWD does 0&ndash;62 in 5.1 sec. Customers who test drive rarely go back.</div></div>
+    <div class="wc w"><div class="wi">&#x1F50C;</div><div class="wt">7. Wake Up With a Full Tank</div><div class="wd">Plug in at home overnight. Most owners never visit a public charger for daily use &mdash; like a petrol station on your driveway, every morning.</div></div>
+    <div class="wc w"><div class="wi">&#x1F4E1;</div><div class="wt">8. Growing Charging Network</div><div class="wd">UK public chargers grew by <strong>45% in 2023 alone</strong>. Zap-Map, Pod Point, and Gridserve make finding chargers easy. Range anxiety is becoming a myth.</div></div>
+    <div class="wc"><div class="wi">&#x1F6E1;</div><div class="wt">9. Hyundai 8-Year Battery Warranty</div><div class="wd">8 years / 100,000 miles. Batteries typically retain 70&ndash;80% capacity after 8&ndash;10 years. Hyundai covers you if they do not.</div></div>
+    <div class="wc"><div class="wi">&#x1F4C5;</div><div class="wt">10. Future-Proof Your Purchase</div><div class="wd">UK ban on new petrol/diesel sales by <strong>2035</strong>. EV resale values strengthening as demand rises. Buy now and stay ahead of the curve.</div></div>
+  </div>
+  <div class="sh2">Hybrid vs EV vs PHEV</div>
+  <div class="card" style="margin-bottom:16px;">
+    <div class="ct">Use When a Customer Asks "What Is the Difference?"</div>
+    <table class="ctbl">
+      <thead><tr><th>Feature</th><th>BEV (Full Electric)</th><th>Hybrid (HEV)</th><th>Plug-in Hybrid (PHEV)</th></tr></thead>
+      <tbody>
+        <tr><td>Charging Required?</td><td>Yes</td><td>No &mdash; self-charges</td><td>Yes (plug-in)</td></tr>
+        <tr><td>Electric-Only Range</td><td>Full range (150&ndash;385 mi)</td><td>Low speed only, a few miles</td><td>~30&ndash;40 miles EV-only</td></tr>
+        <tr><td>Emissions</td><td>Zero tailpipe</td><td>Low &mdash; still burns petrol</td><td>Low when on electric</td></tr>
+        <tr><td>BIK Tax Rate</td><td>3%</td><td>~20&ndash;28%</td><td>~5&ndash;12%</td></tr>
+        <tr><td>ULEZ / CAZ Exempt</td><td>Yes</td><td>Depends on emissions</td><td>Usually yes</td></tr>
+        <tr><td>Best For</td><td>Most drivers &mdash; lowest long-term cost</td><td>High-mileage, no charging access</td><td>Mix of short + long journeys</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="sh2">Home Charging &mdash; Ohme Partnership</div>
+  <div class="g2">
+    <div class="card"><div class="ct">Hyundai Official Charging Partner</div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Ohme Home Pro:</strong> Wall-mounted, integrated cable, interactive display. Smart scheduling for off-peak rates. Up to 7.4 kW.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt"><strong>Ohme ePod:</strong> Compact socket-only unit. Same smart features. Ideal where space is limited.</div></div>
+      <div class="tp"><div class="tpd"></div><div class="tpt">Both support overnight scheduling to charge at cheapest tariffs &mdash; maximising savings per mile.</div></div>
+    </div>
+    <div class="card"><div class="ct">Charging Speed Reference</div>
+      <div class="sr"><span class="sl">3-pin plug (3.7 kW)</span><span class="sv">~22 hrs (emergency only)</span></div>
+      <div class="sr"><span class="sl">Home wallbox (7.4 kW)</span><span class="sv">~6&ndash;12 hrs overnight</span></div>
+      <div class="sr"><span class="sl">Public fast (50 kW)</span><span class="sv">~1.5&ndash;2 hrs</span></div>
+      <div class="sr"><span class="sl">Rapid (150 kW)</span><span class="sv">~40&ndash;60 mins</span></div>
+      <div class="sr"><span class="sl">800V Ultra-rapid (350 kW)</span><span class="sv hl">18&ndash;24 mins (IONIQ range)</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVINGS CALCULATOR -->
+<div id="sec-calc" class="sec">
+  <div style="font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;color:var(--hb);margin-bottom:5px;">Live Savings Calculator</div>
+  <div style="color:var(--muted);font-size:13.5px;margin-bottom:18px;">Enter the customer's details during the call &mdash; then read them the generated script line at the bottom. Personalised numbers land far harder than generic ones.</div>
+  <div class="cpnl">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:18px;">
+      <div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ht);margin-bottom:12px;">Current Car</div>
+        <div style="margin-bottom:12px;"><label class="clbl">Fuel Type</label><select id="fuelType" onchange="calc()" class="csel"><option value="petrol">Petrol (157p/litre)</option><option value="diesel" selected>Diesel (188p/litre)</option></select></div>
+        <div style="margin-bottom:12px;"><label class="clbl">Tank Size (litres)</label><input type="range" id="tankSize" min="35" max="80" value="55" oninput="calc()" class="crng"><div class="cval"><span id="tankVal">55</span>L</div></div>
+        <div style="margin-bottom:12px;"><label class="clbl">Annual Mileage</label><input type="range" id="annualMiles" min="5000" max="30000" step="1000" value="10000" oninput="calc()" class="crng"><div class="cval"><span id="milesVal">10,000</span> miles/yr</div></div>
+        <div><label class="clbl">Current MPG</label><input type="range" id="mpg" min="20" max="65" value="35" oninput="calc()" class="crng"><div class="cval"><span id="mpgVal">35</span> MPG</div></div>
+      </div>
+      <div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ht);margin-bottom:12px;">EV to Compare</div>
+        <div style="margin-bottom:12px;"><label class="clbl">Select Model</label><select id="evModel" onchange="calc()" class="csel"><option value="inster">INSTER (49 kWh, 221 mi)</option><option value="kona">KONA Electric (65 kWh, 319 mi)</option><option value="ioniq5" selected>IONIQ 5 (84 kWh, 354 mi)</option><option value="ioniq5n">IONIQ 5 N (84 kWh, 221 mi)</option><option value="ioniq6">IONIQ 6 (84 kWh, 382 mi)</option><option value="ioniq9">IONIQ 9 (110.3 kWh, 385 mi)</option></select></div>
+        <div><label class="clbl">Home Charging Rate (p/kWh)</label><input type="range" id="elecRate" min="7" max="30" value="24" oninput="calc()" class="crng"><div class="cval"><span id="elecVal">24</span>p/kWh &nbsp;<span style="font-size:10px;opacity:.6;">(off-peak ~7p, standard ~24p)</span></div></div>
+      </div>
+    </div>
+    <div class="cres">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ht);margin-bottom:12px;">Results</div>
+      <div class="crg">
+        <div class="cri"><div class="crl">Current Fuel/yr</div><div class="crv" id="r-current" style="color:#FFB347;">--</div></div>
+        <div class="cri"><div class="crl">EV Charging/yr</div><div class="crv" id="r-ev" style="color:var(--ht);">--</div></div>
+        <div class="cri"><div class="crl">Annual Saving</div><div class="crv" id="r-saving" style="color:var(--ac);">--</div></div>
+        <div class="cri"><div class="crl">5-Year Saving</div><div class="crv" id="r-five" style="color:var(--ac);">--</div></div>
+      </div>
+      <div style="padding-top:10px;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px;opacity:.8;">
+        <div>Cost per mile: <strong id="r-cppm" style="color:#FFB347;">--</strong> now vs <strong id="r-eppm" style="color:var(--ac);">--</strong> EV</div>
+        <div>Current fill-up cost: <strong id="r-fillup" style="color:#FFB347;">--</strong></div>
+      </div>
+      <div class="cscr" id="r-script"></div>
+    </div>
+  </div>
+  <div class="hint"><strong>Also send customers to:</strong> <a href="https://www.read-motorgroup.co.uk/hyundai/new-cars/hyundai-running-costs-calculator/" target="_blank" style="color:var(--ht);font-weight:700;">read-motorgroup.co.uk &rarr; Running Costs Calculator</a> &mdash; they can explore their own numbers at home after the call.</div>
+  <div class="sh2">Home Charging Costs at 7p/kWh (off-peak)</div>
+  <div class="card">
+    <table class="ctbl">
+      <thead><tr><th>Model</th><th>Battery</th><th>Range</th><th>Full Charge (7p)</th><th>Per Mile</th></tr></thead>
+      <tbody>
+        <tr><td>INSTER Long Range</td><td>49 kWh</td><td>221 mi</td><td>~&pound;3.43</td><td>~1.5p</td></tr>
+        <tr><td>KONA Electric</td><td>65 kWh</td><td>319 mi</td><td>~&pound;4.55</td><td>~1.4p</td></tr>
+        <tr><td>IONIQ 5</td><td>84 kWh</td><td>354 mi</td><td>~&pound;5.88</td><td>~1.7p</td></tr>
+        <tr><td>IONIQ 5 N</td><td>84 kWh</td><td>221 mi</td><td>~&pound;5.88</td><td>~2.1p</td></tr>
+        <tr><td>IONIQ 6 (RWD)</td><td>77 kWh</td><td>339 mi</td><td>~&pound;5.39</td><td>~1.6p</td></tr>
+        <tr><td>IONIQ 9</td><td>110.3 kWh</td><td>385 mi</td><td>~&pound;7.72</td><td>~2.0p</td></tr>
+      </tbody>
+    </table>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px;">vs petrol at 157p/litre = ~15&ndash;20p/mile. Off-peak home charging at 7p/kWh saves you up to 13p per mile.</div>
+  </div>
+</div>
+
+<!-- EV Q&A -->
+<div id="sec-qa" class="sec">
+  <div style="font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;color:var(--hb);margin-bottom:5px;">EV Q&amp;A &mdash; Customer Questions Answered</div>
+  <div style="color:var(--muted);font-size:13.5px;margin-bottom:18px;">Every common question from your event guide, with scripted answers ready to use on calls.</div>
+  <div class="scr"><div class="sh" onclick="tog(this)"><div class="shl"><div class="si blue">&#x1F697;</div><div><div class="slbl">Will an electric vehicle work for me?</div><div class="ssub">The most common first question</div></div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+  <div class="sb"><div class="csb"><div class="st">The Answer</div>"For the vast majority of UK drivers &mdash; yes. Most modern EVs do 150&ndash;385 miles on a charge, and the average UK driver covers under 25 miles a day. If you can charge at home or at work, you plug in overnight and wake up with a full tank every morning. The only drivers for whom an EV is not yet ideal are those who regularly drive 300+ miles without stopping, or who have no access to home or workplace charging."</div></div></div>
+
+  <div class="scr"><div class="sh" onclick="tog(this)"><div class="shl"><div class="si orange">&#x1F4B7;</div><div><div class="slbl">Are electric cars expensive to run?</div><div class="ssub">The number that changes minds</div></div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+  <div class="sb"><div class="csb"><div class="st">The Answer</div>"Far cheaper than petrol or diesel. Home charging costs around <strong>3&ndash;5p per mile</strong>. Petrol at 157p/litre costs <strong>15&ndash;20p per mile</strong>. That is a 4&ndash;5x difference. A full charge on an IONIQ 5 at home costs around &pound;6&ndash;&pound;15 and covers 250&ndash;354 miles. Compare that to &pound;60&ndash;&pound;100 for a tank of petrol. No oil changes, no exhaust &mdash; servicing costs less too."</div></div></div>
+
+  <div class="scr"><div class="sh" onclick="tog(this)"><div class="shl"><div class="si green">&#x23F3;</div><div><div class="slbl">How long does it take to charge?</div><div class="ssub">The most misunderstood topic</div></div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+  <div class="sb"><div class="csb"><div class="st">The Key Reframe</div>"The question most people ask is how long charging takes. The better question is: <strong>when do you ever need to charge quickly?</strong> Most IONIQ owners charge at home overnight and wake up to a full charge. They never visit a public charger for daily use. It is like a phone &mdash; you charge it when you are not using it. And when you do need a rapid top-up on a long journey, the IONIQ 5, 6 and 9 all support 800V charging &mdash; <strong>10 to 80% in 18&ndash;24 minutes</strong>. That is a coffee stop."</div>
+  <div class="card" style="margin-top:12px;"><table class="ctbl"><thead><tr><th>Method</th><th>Speed</th><th>IONIQ 5</th><th>KONA EV</th><th>INSTER</th></tr></thead><tbody><tr><td>Home wallbox (recommended)</td><td>7 kW</td><td>~12 hrs</td><td>~9 hrs</td><td>~8 hrs</td></tr><tr><td>Public fast</td><td>50 kW</td><td>~2 hrs</td><td>~1.5 hrs</td><td>~1.5 hrs</td></tr><tr><td>800V Ultra-rapid</td><td>350 kW</td><td>18 min</td><td>~41 min</td><td>~30 min</td></tr></tbody></table></div></div></div>
+
+  <div class="scr"><div class="sh" onclick="tog(this)"><div class="shl"><div class="si purple">&#x1F50B;</div><div><div class="slbl">Will the battery degrade or need replacing?</div><div class="ssub">Closes the biggest single objection</div></div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+  <div class="sb"><div class="csb"><div class="st">The Answer</div>"Hyundai's EV batteries are designed to last <strong>8&ndash;15 years</strong>. Hyundai backs that with an <strong>8-year / 100,000-mile battery warranty</strong>. Batteries lose capacity slowly &mdash; most retain <strong>70&ndash;80% capacity after 8&ndash;10 years</strong>. If your IONIQ 5 does 354 miles when new, it might do 280&ndash;300 miles after a decade. That is still very usable. Tips: keep the battery between 20&ndash;80% for daily use, use home slow charging where possible, and avoid running it completely flat."</div></div></div>
+
+  <div class="scr"><div class="sh" onclick="tog(this)"><div class="shl"><div class="si red">&#x1F630;</div><div><div class="slbl">What about range anxiety?</div><div class="ssub">Turn fear into confidence</div></div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+  <div class="sb"><div class="csb"><div class="st">The Answer</div>"Range anxiety is almost always caused by lack of familiarity with EVs &mdash; not a real limitation of the cars. In 2023 alone, UK public chargers grew by <strong>45%</strong>. Apps like <strong>Zap-Map</strong> show real-time availability. And with 18-minute 800V charging on the IONIQ range, even a long motorway journey is very manageable. Most drivers who switch tell us within a month that range anxiety completely disappears."</div>
+  <div class="hint" style="margin-top:10px;"><strong>Tips to share with customers:</strong> Gentle acceleration &middot; Watch your speed &middot; Use regenerative braking paddle shifters &middot; Turn off AC when not needed &middot; Use the car's built-in route planner</div></div></div>
+
+  <div class="scr"><div class="sh" onclick="tog(this)"><div class="shl"><div class="si gold">&#x1F527;</div><div><div class="slbl">Do EVs break down more than petrol cars?</div><div class="ssub">Reliability concern</div></div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+  <div class="sb"><div class="csb"><div class="st">The Answer</div>"No &mdash; in fact the opposite. EVs have <strong>far fewer moving parts</strong>: no oil to change, no spark plugs, no timing belt, no exhaust. Regenerative braking means even brake pads last significantly longer. Fewer parts = fewer things to go wrong. The most common reason EV drivers call roadside assistance is running low on charge in early ownership &mdash; not a mechanical fault &mdash; and that quickly becomes a non-issue."</div></div></div>
+
+  <div class="scr"><div class="sh" onclick="tog(this)"><div class="shl"><div class="si blue">&#x1F4CD;</div><div><div class="slbl">Where are my nearest charging points?</div><div class="ssub">Practical question &mdash; have the apps ready</div></div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+  <div class="sb"><div class="csb"><div class="st">Recommend These Apps</div>"<strong>Zap-Map</strong> is the most popular in the UK &mdash; real-time availability, charger speed, network, plug type, and user reviews. Free on iOS and Android at zap-map.com.<br><br><strong>Pod Point</strong> covers their own network found at Tesco and Lidl &mdash; great for top-ups during a shop.<br><br>Networks like <strong>Gridserve, BP Pulse, InstaVolt, and Osprey</strong> all have their own apps. Your Hyundai's built-in navigation also shows nearby chargers with live availability."</div></div></div>
+</div>
+
+<!-- CALL TRACKER -->
+<div id="sec-tracker" class="sec">
+  <div style="font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;color:var(--hb);margin-bottom:5px;">Event Week Call Tracker</div>
+  <div style="color:var(--muted);font-size:13.5px;margin-bottom:18px;">Log every call and test drive booking. Resets when you refresh &mdash; use alongside your CRM.</div>
+  <div class="tgr">
+    <div class="tbox"><div class="tnum" id="t-calls" style="color:var(--ht);">0</div><div class="tlbl">Calls Made</div></div>
+    <div class="tbox"><div class="tnum" id="t-bookings" style="color:var(--ac);">0</div><div class="tlbl">Test Drives Booked</div></div>
+    <div class="tbox"><div class="tnum" id="t-callbacks" style="color:#FFB347;">0</div><div class="tlbl">Callbacks Needed</div></div>
+    <div class="tbox"><div class="tnum" id="t-rate" style="color:var(--warn);">--</div><div class="tlbl">Conversion Rate</div></div>
+  </div>
+  <div class="tbgr">
+    <button class="tbtn" onclick="logCall('call')" style="background:var(--hb);color:#fff;">Log a Call</button>
+    <button class="tbtn" onclick="logCall('booking')" style="background:#1A7A48;color:#fff;">Log Test Drive Booked</button>
+    <button class="tbtn" onclick="logCall('callback')" style="background:#8B6000;color:#fff;">Log Callback Needed</button>
+  </div>
+  <div class="card" style="margin-bottom:18px;">
+    <div class="ct">Call Log</div>
+    <div id="t-log" style="font-size:12.5px;color:var(--muted);max-height:280px;overflow-y:auto;line-height:1.8;"><em>No calls logged yet &mdash; use the buttons above to start tracking.</em></div>
+    <button onclick="resetTracker()" style="margin-top:12px;background:none;border:1px solid var(--bdr);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;color:var(--muted);font-family:'Manrope',sans-serif;">Reset Tracker</button>
+  </div>
+  <div class="sh2">Event Week Countdown</div>
+  <div class="cdp">
+    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.7;margin-bottom:7px;">Time Remaining in Event Week</div>
+    <div id="countdown" style="font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;color:#FFB347;">Calculating...</div>
+    <div style="font-size:11.5px;opacity:.6;margin-top:5px;">Event closes Sunday 18 May 2026 at 6:00pm</div>
+    <div id="countdown-msg" style="margin-top:10px;font-size:13.5px;opacity:.85;"></div>
+  </div>
+</div>
 
 </main>
-
 <script>
-function showModel(id) {
-  // Update sections
-  document.querySelectorAll('.model-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('sec-' + id).classList.add('active');
-
-  // Update nav buttons
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-
-  // Scroll to top of main content
-  window.scrollTo({ top: 60, behavior: 'smooth' });
+function show(e,id){
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('active');});
+  e.currentTarget.classList.add('active');
+  window.scrollTo({top:60,behavior:'smooth'});
 }
-
-function toggleScript(header) {
-  const body = header.nextElementSibling;
-  const chevron = header.querySelector('.chevron');
-  const isOpen = body.classList.contains('open');
-
-  body.classList.toggle('open', !isOpen);
-  header.classList.toggle('open', !isOpen);
-  chevron.classList.toggle('open', !isOpen);
+function showD(id){
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.nb').forEach(function(b){
+    if(b.getAttribute('onclick')&&b.getAttribute('onclick').indexOf("'"+id+"'")>-1)b.classList.add('active');
+  });
+  window.scrollTo({top:60,behavior:'smooth'});
 }
-
-// Open all scripts by default on first load
-document.addEventListener('DOMContentLoaded', () => {
-  // Keep closed by default for cleaner look
-});
+function tog(h){
+  var b=h.nextElementSibling,c=h.querySelector('.chev'),o=b.classList.contains('open');
+  b.classList.toggle('open',!o);h.classList.toggle('open',!o);c.classList.toggle('open',!o);
+}
+var EVS={inster:{kwh:49,range:221,name:'INSTER'},kona:{kwh:65,range:319,name:'KONA Electric'},ioniq5:{kwh:84,range:354,name:'IONIQ 5'},ioniq5n:{kwh:84,range:221,name:'IONIQ 5 N'},ioniq6:{kwh:84,range:382,name:'IONIQ 6'},ioniq9:{kwh:110.3,range:385,name:'IONIQ 9'}};
+var FP={petrol:1.57,diesel:1.88};
+function calc(){
+  var fuel=document.getElementById('fuelType').value;
+  var tank=+document.getElementById('tankSize').value;
+  var miles=+document.getElementById('annualMiles').value;
+  var elec=+document.getElementById('elecRate').value/100;
+  var mpg=+document.getElementById('mpg').value;
+  var ev=EVS[document.getElementById('evModel').value];
+  document.getElementById('tankVal').textContent=tank;
+  document.getElementById('milesVal').textContent=miles.toLocaleString();
+  document.getElementById('elecVal').textContent=Math.round(elec*100);
+  document.getElementById('mpgVal').textContent=mpg;
+  var lpm=1/(mpg*0.4546);
+  var cur=Math.round(miles*lpm*FP[fuel]);
+  var evc=Math.round(miles*(ev.kwh/ev.range)*elec);
+  var sav=cur-evc;
+  var fy=(sav+500)*5;
+  document.getElementById('r-current').textContent='£'+cur.toLocaleString();
+  document.getElementById('r-ev').textContent='£'+evc.toLocaleString();
+  document.getElementById('r-saving').textContent='£'+sav.toLocaleString();
+  document.getElementById('r-five').textContent='£'+fy.toLocaleString();
+  document.getElementById('r-fillup').textContent='£'+Math.round(tank*FP[fuel]);
+  document.getElementById('r-cppm').textContent=(miles*lpm*FP[fuel]/miles*100).toFixed(1)+'p';
+  document.getElementById('r-eppm').textContent=((ev.kwh/ev.range)*elec*100).toFixed(1)+'p';
+  document.getElementById('r-script').innerHTML='<strong style="color:var(--ht);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">Say This to the Customer:</strong>"Based on '+miles.toLocaleString()+' miles a year, you are currently spending around £'+cur.toLocaleString()+' on '+fuel+'. The '+ev.name+' would cost roughly £'+evc.toLocaleString()+' to charge at home — saving you £'+sav.toLocaleString()+' a year. Over five years, including servicing savings, that is over £'+fy.toLocaleString()+'. And as a Hyundai customer the Q2 loyalty bonus takes £2,000 off the car."';
+}
+window.addEventListener('load',calc);
+var calls=0,bookings=0,callbacks=0,log=[];
+function logCall(type){
+  var now=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  calls++;
+  if(type==='booking'){bookings++;log.unshift(now+' -- BOOKED: Test Drive Secured');}
+  else if(type==='callback'){callbacks++;log.unshift(now+' -- CALLBACK: Follow-up needed');}
+  else{log.unshift(now+' -- CALL: Outbound call made');}
+  document.getElementById('t-calls').textContent=calls;
+  document.getElementById('t-bookings').textContent=bookings;
+  document.getElementById('t-callbacks').textContent=callbacks;
+  document.getElementById('t-rate').textContent=Math.round(bookings/calls*100)+'%';
+  document.getElementById('t-log').innerHTML=log.slice(0,25).map(function(l){return '<div style="padding:4px 0;border-bottom:1px solid var(--bdr);">'+l+'</div>';}).join('');
+}
+function resetTracker(){
+  calls=0;bookings=0;callbacks=0;log=[];
+  document.getElementById('t-calls').textContent=0;
+  document.getElementById('t-bookings').textContent=0;
+  document.getElementById('t-callbacks').textContent=0;
+  document.getElementById('t-rate').textContent='--';
+  document.getElementById('t-log').innerHTML='<em style="color:var(--muted);">No calls logged yet.</em>';
+}
+function countdown(){
+  var end=new Date('2026-05-18T18:00:00'),now=new Date(),diff=end-now;
+  var el=document.getElementById('countdown');
+  if(!el)return;
+  if(diff<=0){el.textContent='Event Ended';document.getElementById('countdown-msg').textContent='Great work this week team!';return;}
+  var d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000);
+  el.textContent=(d>0?d+'d ':'')+h+'h '+m+'m remaining';
+  document.getElementById('countdown-msg').textContent=d===0?'Final push today - every call counts!':d===1?'Last full day - finish strong!':'Keep going - '+(d+1)+' days of event left!';
+}
+countdown();
+setInterval(countdown,60000);
 </script>
-
 </body>
 </html>
